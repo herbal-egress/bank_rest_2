@@ -1,6 +1,24 @@
-
 services:
 
+  # добавленный код: Сервис Tomcat для развертывания приложения как WAR (заменяет embedded Tomcat для external контейнера; SOLID: SRP для deployment; OWASP: trusted image tomcat:10.0-jdk17 без known vulnerabilities).
+  tomcat:
+    image: tomcat:10.0-jdk17
+    container_name: bank-tomcat
+    ports:
+      - "8091:8080"
+    volumes:
+      - ./target/bankcards-0.0.1-SNAPSHOT.war:/usr/local/tomcat/webapps/ROOT.war  # добавленный код: Монтирование WAR из host target для автодеплоя в Tomcat (OWASP: avoid hardcoding secrets in volumes).
+    depends_on:
+      - db-dev  # добавленный код: Зависимость от БД для последовательного запуска.
+    environment:
+      SPRING_PROFILES_ACTIVE: dev  # добавленный код: Активация профиля dev для Spring.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-dev:5432/bankrest  # добавленный код: URL datasource с ссылкой на db-dev (SOLID: DIP от конкретных хостов).
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}  # добавленный код: Username из .env (OWASP: secrets from env, not hardcoded).
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}  # добавленный код: Password из .env.
+    networks:
+      - bank_network  # добавленный код: Сеть для связи с db-dev.
+
+  # добавленный код: БД dev без изменений, добавлена сеть для связи.
   db-dev:
     image: postgres:17-alpine
     container_name: bank-db-dev
@@ -12,35 +30,13 @@ services:
       - "5433:5432"
     volumes:
       - db-dev-data:/var/lib/postgresql/data
+    networks:
+      - bank_network
 
-  
-  db-ops:
-    image: postgres:17-alpine
-    container_name: bank-db-ops
-    environment:
-      POSTGRES_DB: bankrest
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "5434:5432"
-    volumes:
-      - db-ops-data:/var/lib/postgresql/data
-
-  
-  app-dev:
-    build: .
-    container_name: bank-app-dev
-    depends_on:
-      - db-dev
-    environment:
-      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db-dev:5432/bankrest
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "8081:8080"
-
-
+# добавленный код: Top-level volumes для персистенции.
 volumes:
   db-dev-data:
-  db-ops-data:
+
+# добавленный код: Top-level networks для изоляции (OWASP: network segmentation).
+networks:
+  bank_network:
