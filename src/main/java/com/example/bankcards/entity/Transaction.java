@@ -4,6 +4,7 @@ package com.example.bankcards.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,7 +29,7 @@ public class Transaction {
     @NotNull
     @Positive(message = "Сумма транзакции должна быть положительной")
     @Column(name = "amount", nullable = false, precision = 19, scale = 2)
-    private double amount;
+    private BigDecimal amount;
 
     @NotNull
     @Column(name = "timestamp", nullable = false)
@@ -42,7 +43,7 @@ public class Transaction {
     public Transaction() {
     }
 
-    public Transaction(Card fromCard, Card toCard, double amount, LocalDateTime timestamp, TransactionStatus status) {
+    public Transaction(Card fromCard, Card toCard, BigDecimal amount, LocalDateTime timestamp, TransactionStatus status) {
         this.fromCard = fromCard;
         this.toCard = toCard;
         this.amount = amount;
@@ -74,11 +75,11 @@ public class Transaction {
         this.toCard = toCard;
     }
 
-    public double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 

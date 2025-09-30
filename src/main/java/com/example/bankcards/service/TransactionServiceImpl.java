@@ -12,9 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal; // изменил: Добавлен импорт для BigDecimal
 import java.time.LocalDateTime;
 
-// изменил: Исправил работу с полями fromCard и toCard вместо fromCardId и toCardId
+// изменил: Обновил для работы с BigDecimal
 @Service
 public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);
@@ -29,15 +30,15 @@ public class TransactionServiceImpl implements TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
-    // изменил: Исправил логику сохранения транзакции
+    // изменил: Параметр amount теперь BigDecimal
     @Override
     @Transactional
-    public Transaction transfer(Long fromCardId, Long toCardId, double amount, Long userId) {
+    public Transaction transfer(Long fromCardId, Long toCardId, BigDecimal amount, Long userId) {
         logger.info("Инициирование перевода с карты ID {} на карту ID {} на сумму {} для пользователя ID {}",
                 fromCardId, toCardId, amount, userId);
 
-        // добавил: Валидация входных данных
-        if (amount <= 0) {
+        // изменил: Валидация входных данных для BigDecimal
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             logger.error("Сумма перевода должна быть положительной: {}", amount);
             throw new IllegalArgumentException("Сумма перевода должна быть положительной");
         }
@@ -54,25 +55,25 @@ public class TransactionServiceImpl implements TransactionService {
                     return new IllegalArgumentException("Целевая карта не найдена или не принадлежит пользователю");
                 });
 
-        // добавил: Проверка статуса карт и баланса
+        // изменил: Проверка баланса для BigDecimal
         if (fromCard.getStatus() != CardStatus.ACTIVE || toCard.getStatus() != CardStatus.ACTIVE) {
             logger.error("Одна из карт не активна: fromCardStatus={}, toCardStatus={}",
                     fromCard.getStatus(), toCard.getStatus());
             throw new IllegalStateException("Обе карты должны быть активны");
         }
-        if (fromCard.getBalance() < amount) {
+        if (fromCard.getBalance().compareTo(amount) < 0) {
             logger.error("Недостаточно средств на карте с ID {}: баланс={}, сумма={}",
                     fromCardId, fromCard.getBalance(), amount);
             throw new IllegalStateException("Недостаточно средств на карте");
         }
 
-        // добавил: Выполнение перевода
-        fromCard.setBalance(fromCard.getBalance() - amount);
-        toCard.setBalance(toCard.getBalance() + amount);
+        // изменил: Обновление баланса с использованием BigDecimal
+        fromCard.setBalance(fromCard.getBalance().subtract(amount));
+        toCard.setBalance(toCard.getBalance().add(amount));
         cardRepository.save(fromCard);
         cardRepository.save(toCard);
 
-        // изменил: Используем setFromCard и setToCard вместо setFromCardId и setToCardId
+        // изменил: Сохранение транзакции с BigDecimal
         Transaction transaction = new Transaction();
         transaction.setFromCard(fromCard);
         transaction.setToCard(toCard);

@@ -9,11 +9,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal; // изменил: Добавлен импорт для BigDecimal
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
-// изменил: Переименовал класс в AdminCardServiceImpl и реализовал интерфейс AdminCardService
+// изменил: Обновил для работы с BigDecimal
 @Service
 public class AdminCardServiceImpl implements AdminCardService {
     private static final Logger logger = LoggerFactory.getLogger(AdminCardServiceImpl.class);
@@ -30,7 +31,7 @@ public class AdminCardServiceImpl implements AdminCardService {
         this.encryptionUtil = encryptionUtil;
     }
 
-    // добавил: Реализация создания новой карты
+    // изменил: Используем BigDecimal для balance
     @Override
     public Card createCard(Long userId, String name) {
         logger.info("Создание карты для пользователя с ID: {}", userId);
@@ -45,10 +46,10 @@ public class AdminCardServiceImpl implements AdminCardService {
         card.setId(userId);
         card.setName(name);
         card.setNumber(generateCardNumber());
-        card.setCvv(generateCvv());
+        card.setCvv(generateCcv());
         card.setExpiration(generateExpirationDate());
         card.setStatus(CardStatus.ACTIVE);
-        card.setBalance(0.00);
+        card.setBalance(BigDecimal.ZERO); // изменил: Используем BigDecimal.ZERO
 
         // добавил: Шифрование номера карты перед сохранением
         String encryptedNumber = encryptionUtil.encrypt(card.getNumber());
@@ -109,8 +110,8 @@ public class AdminCardServiceImpl implements AdminCardService {
         return number.toString();
     }
 
-    // добавил: Генерация CVV
-    private String generateCvv() {
+    // добавил: Генерация CCV
+    private String generateCcv() {
         Random random = new Random();
         return String.format("%03d", random.nextInt(1000));
     }

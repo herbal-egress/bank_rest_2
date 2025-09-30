@@ -6,20 +6,18 @@ import com.example.bankcards.util.EncryptionUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.springframework.beans.factory.annotation.Autowired;
 
-// изменил: Обновил зависимости для использования интерфейсов сервисов
+// изменил: Обновил маппинг для BigDecimal
 @Mapper(componentModel = "spring")
 public abstract class CardMapper {
 
-    @Autowired
     protected EncryptionUtil encryptionUtil;
 
-    // добавил: Маппинг Card -> CardDTO с маскировкой номера карты
+
     @Mapping(source = "number", target = "number", qualifiedByName = "maskCardNumber")
     public abstract CardDTO toDTO(Card card);
 
-    // добавил: Маппинг CardDTO -> Card
+    // изменил: Маппинг CardDTO -> Card с учётом BigDecimal
     public abstract Card toEntity(CardDTO cardDTO);
 
     // добавил: Метод для маскировки номера карты

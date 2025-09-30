@@ -4,12 +4,13 @@ import com.example.bankcards.config.EnvConfig;
 import com.example.bankcards.exception.EncryptionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
+@Component
 // изменил: Используется ENCRYPTION_SECRET вместо JWT_SECRET для шифрования
 public class EncryptionUtil {
     private static final Logger logger = LoggerFactory.getLogger(EncryptionUtil.class);
