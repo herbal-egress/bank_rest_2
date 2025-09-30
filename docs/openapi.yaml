@@ -1,13 +1,9 @@
-# добавленный код: Версия OpenAPI.
 openapi: 3.0.3
-# добавленный код: Информация о API.
 info:
   title: Bank Cards API
   version: 1.0.0
   description: API для управления банковскими картами
-# добавленный код: Серверы.
 servers:
   - url: http://localhost:8080
     description: Dev server
-# добавленный код: Пути (пустые, будут добавлены).
-paths: {}
+paths: { }

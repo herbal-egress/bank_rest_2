@@ -1,4 +1,3 @@
-# добавленный код: Мастер changelog для Liquibase.
 databaseChangeLog:
   - include:
-      file: db/migration/001_init_schema.sql  # добавленный код: Начальная миграция.
+      file: db/migration/001_init_schema.sql  
