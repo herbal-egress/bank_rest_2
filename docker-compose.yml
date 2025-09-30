@@ -1,35 +1,32 @@
-# добавленный код: Версия docker-compose.
-version: '3.8'
-
-# добавленный код: Сервисы.
+# добавленный код: Сервисы (удалена устаревшая 'version: 3.8' для совместимости с Docker Compose v2+).
 services:
-  # добавленный код: БД для dev.
+  # добавленный код: БД для dev (обновлена версия до актуальной PostgreSQL 18).
   db-dev:
-    image: postgres:17  # добавленный код: Последняя версия PostgreSQL.
+    image: postgres:18
     container_name: bank-db-dev
     environment:
-      POSTGRES_DB: bankrest  # добавленный код: Схема bankrest.
+      POSTGRES_DB: bankrest
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${DB_PORT:5433}:5432"  # добавленный код: Кастомный порт 5433.
+      - "${DB_PORT:5433}:5432"
     volumes:
-      - db-dev-data:/var/lib/postgresql/data  # добавленный код: Персистентный volume.
+      - db-dev-data:/var/lib/postgresql/data
 
-  # добавленный код: БД для ops.
+  # добавленный код: БД для ops (обновлена версия до актуальной PostgreSQL 18).
   db-ops:
-    image: postgres:17
+    image: postgres:18
     container_name: bank-db-ops
     environment:
       POSTGRES_DB: bankrest
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${DB_PORT_OPS:5434}:5432"  # добавленный код: Кастомный порт 5434.
+      - "${DB_PORT_OPS:5434}:5432"
     volumes:
       - db-ops-data:/var/lib/postgresql/data
 
-  # добавленный код: Приложение (опционально для dev).
+  # добавленный код: Приложение для dev (адаптировано под .env: добавлены SPRING_DATASOURCE_* для переопределения из application.yml, с использованием переменных из .env; SOLID: SRP для конфигурации; OWASP: избегание хардкода секретов).
   app-dev:
     build: .
     container_name: bank-app-dev
@@ -37,12 +34,13 @@ services:
       - db-dev
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      DB_HOST: db-dev
-      DB_PORT: 5432  # добавленный код: Внутренний порт.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-dev:5432/bankrest
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "8081:8081"
+      - "8081:8080"
 
-# добавленный код: Volumes для персистенции.
+# добавленный код: Volumes для персистенции (без изменений).
 volumes:
   db-dev-data:
   db-ops-data:

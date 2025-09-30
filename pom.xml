@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- добавленный код: Определяет корневой элемент POM для Maven проекта. -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <!-- добавленный код: Указывает модель версии POM. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- добавленный код: Определение модели POM версии 4.0.0 для Maven. -->
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- добавленный код: Группа проекта для уникальной идентификации. -->
+    <!-- добавленный код: Группа проекта. -->
     <groupId>com.example</groupId>
-    <!-- добавленный код: Артефакт ID проекта. -->
+    <!-- добавленный код: Артефакт проекта. -->
     <artifactId>bankcards</artifactId>
     <!-- добавленный код: Версия проекта. -->
     <version>0.0.1-SNAPSHOT</version>
-    <!-- добавленный код: Тип упаковки - JAR для исполняемого приложения. -->
+    <!-- добавленный код: Тип упаковки — JAR. -->
     <packaging>jar</packaging>
 
-    <!-- добавленный код: Название проекта для документации. -->
-    <name>bank_rest</name>
+    <!-- добавленный код: Имя проекта. -->
+    <name>bankcards</name>
     <!-- добавленный код: Описание проекта. -->
-    <description>Система управления банковскими картами</description>
+    <description>REST API для управления банковскими картами</description>
 
-    <!-- добавленный код: Родительский POM от Spring Boot для управления зависимостями. -->
+    <!-- добавленный код: Родительский POM от Spring Boot для упрощения зависимостей и конфигурации. -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -32,19 +32,19 @@
         <java.version>17</java.version>
     </properties>
 
-    <!-- добавленный код: Секция зависимостей. -->
+    <!-- добавленный код: Зависимости проекта. -->
     <dependencies>
-        <!-- добавленный код: Стартер для веб-приложений Spring Boot (REST API). -->
+        <!-- добавленный код: Стартер для веб-приложений Spring Boot. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- добавленный код: Стартер для безопасности (Spring Security + JWT). -->
+        <!-- добавленный код: Стартер для безопасности Spring Boot. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        <!-- добавленный код: Стартер для работы с БД (JPA, Hibernate). -->
+        <!-- добавленный код: Стартер для работы с данными JPA. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -60,13 +60,7 @@
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
         </dependency>
-        <!-- добавленный код: Swagger для документации API (OpenAPI 3). -->
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version>
-        </dependency>
-        <!-- добавленный код: JWT библиотека для аутентификации. -->
+        <!-- добавленный код: JJWT для работы с JWT. -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -84,25 +78,29 @@
             <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
-        <!-- добавленный код: Стартер для тестов (JUnit, Mockito). -->
+        <!-- добавленный код: Springdoc для Swagger/OpenAPI. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+        <!-- добавленный код: Стартер для тестов. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- добавленный код: Тестирование безопасности. -->
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
-    <!-- добавленный код: Секция сборки. -->
+    <!-- добавленный код: Плагины сборки. -->
     <build>
-        <!-- добавленный код: Плагины для сборки. -->
         <plugins>
-            <!-- добавленный код: Плагин Spring Boot для создания исполняемого JAR. -->
+            <!-- добавленный код: Плагин Spring Boot для сборки исполняемого JAR. -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
