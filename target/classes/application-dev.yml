@@ -1,22 +1,17 @@
-# добавленный код: Настройки для dev профиля.
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/bankrest  # добавленный код: URL БД с переменными окружения (кастомный порт 5433).
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/bankrest
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: none  # добавленный код: Отключено авто-DDL, миграции через Liquibase.
-    show-sql: true  # добавленный код: Показ SQL для отладки.
+      ddl-auto: none
+    show-sql: true
   liquibase:
-    change-log: classpath:db/migration/changelog-master.yaml  # добавленный код: Мастер-файл Liquibase.
-
-# добавленный код: Секреты JWT.
+    change-log: classpath:db/migration/changelog-master.yaml
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:86400000}  # добавленный код: Срок действия токена (1 день по умолчанию).
-
-# добавленный код: Кастомный порт сервера для dev.
+  expiration: ${JWT_EXPIRATION:86400000}
 server:
   port: ${SERVER_PORT:8081}
