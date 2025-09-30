@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
-// изменил: Переименовал класс в TransactionServiceImpl и реализовал интерфейс TransactionService
+// изменил: Исправил работу с полями fromCard и toCard вместо fromCardId и toCardId
 @Service
 public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);
@@ -29,7 +29,7 @@ public class TransactionServiceImpl implements TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
-    // добавил: Реализация перевода между картами
+    // изменил: Исправил логику сохранения транзакции
     @Override
     @Transactional
     public Transaction transfer(Long fromCardId, Long toCardId, double amount, Long userId) {
@@ -72,10 +72,10 @@ public class TransactionServiceImpl implements TransactionService {
         cardRepository.save(fromCard);
         cardRepository.save(toCard);
 
-        // добавил: Логирование транзакции
+        // изменил: Используем setFromCard и setToCard вместо setFromCardId и setToCardId
         Transaction transaction = new Transaction();
-        transaction.setFromCardId(fromCardId);
-        transaction.setToCardId(toCardId);
+        transaction.setFromCard(fromCard);
+        transaction.setToCard(toCard);
         transaction.setAmount(amount);
         transaction.setTimestamp(LocalDateTime.now());
         transaction.setStatus(TransactionStatus.SUCCESS);

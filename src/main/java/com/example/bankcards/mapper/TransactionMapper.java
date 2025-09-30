@@ -1,14 +1,20 @@
-package com.example.bankcards.mapper;
+package com.example.bankcards.dto;
 
 import com.example.bankcards.entity.Transaction;
+import com.example.bankcards.mapper.CardMapper;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-// добавил: MapStruct-маппер для преобразования Transaction в TransactionDTO и обратно (без изменений)
-@Mapper(componentModel = "spring")
+// изменил: Обновил маппинг для работы с fromCard и toCard
+@Mapper(componentModel = "spring", uses = {CardMapper.class})
 public interface TransactionMapper {
-    // добавил: Маппинг Transaction -> TransactionDTO
+    // изменил: Маппинг Transaction -> TransactionDTO с учётом fromCard и toCard
+    @Mapping(source = "fromCard", target = "fromCard")
+    @Mapping(source = "toCard", target = "toCard")
     TransactionDTO toDTO(Transaction transaction);
 
-    // добавил: Маппинг TransactionDTO -> Transaction
+    // изменил: Маппинг TransactionDTO -> Transaction с учётом fromCard и toCard
+    @Mapping(source = "fromCard", target = "fromCard")
+    @Mapping(source = "toCard", target = "toCard")
     Transaction toEntity(TransactionDTO transactionDTO);
 }
