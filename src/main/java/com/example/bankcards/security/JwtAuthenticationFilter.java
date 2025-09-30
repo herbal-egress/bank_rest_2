@@ -1,6 +1,7 @@
 package com.example.bankcards.security;
 
 import com.example.bankcards.exception.JwtAuthenticationException;
+import com.example.bankcards.util.JwtUtil;
 import jakarta.servlet.FilterChain; // добавленный код: импорт для цепочки фильтров.
 import jakarta.servlet.ServletException; // добавленный код: импорт исключения.
 import jakarta.servlet.http.HttpServletRequest; // добавленный код: импорт request.

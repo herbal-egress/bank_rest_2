@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "cards", schema = "bankrest")
@@ -40,7 +39,7 @@ public class Card {
 
     @NotNull
     @Column(name = "balance", nullable = false, precision = 19, scale = 2)
-    private BigDecimal balance;
+    private double balance;
 
     @NotNull
     @Size(min = 3, max = 3, message = "CVV должен содержать 3 цифры")
@@ -57,7 +56,7 @@ public class Card {
     public Card() {
     }
 
-    public Card(String number, String name, String expiration, CardStatus status, BigDecimal balance, String cvv, User user) {
+    public Card(String number, String name, String expiration, CardStatus status, double balance, String cvv, User user) {
         this.number = number; // изменил ИИ: удалил вызов EncryptionUtil.encrypt, так как шифрование теперь обрабатывается конвертером (соответствие SOLID: OCP - изменения без модификации сущности).
         this.name = name;
         this.expiration = expiration;
@@ -107,11 +106,11 @@ public class Card {
         this.status = status;
     }
 
-    public BigDecimal getBalance() {
+    public double getBalance() {
         return balance;
     }
 
-    public void setBalance(BigDecimal balance) {
+    public void setBalance(double balance) {
         this.balance = balance;
     }
 
