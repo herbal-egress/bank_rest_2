@@ -41,7 +41,7 @@ CREATE TABLE bankrest.cards (
                                 expiration VARCHAR(5) NOT NULL,  -- Срок MM-YY.
                                 status VARCHAR(20) NOT NULL,     -- Enum: ACTIVE, BLOCKED, EXPIRED.
                                 balance DECIMAL(19,2) NOT NULL,  -- Баланс с 2 знаками.
-                                ccv VARCHAR(3) NOT NULL,         -- CCV 3 цифры.
+                                cvv VARCHAR(3) NOT NULL,         -- CVV 3 цифры.
                                 user_id BIGINT NOT NULL REFERENCES bankrest.users(id) ON DELETE CASCADE -- Связь с пользователем.
 );
 

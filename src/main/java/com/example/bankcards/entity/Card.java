@@ -49,10 +49,10 @@ public class Card {
     private BigDecimal balance;
 
     @NotNull
-    @Size(min = 3, max = 3, message = "CCV должен содержать 3 цифры")
-    @Pattern(regexp = "^\\d{3}$", message = "CCV должен содержать только 3 цифры")
-    @Column(name = "ccv", nullable = false)
-    private String ccv;
+    @Size(min = 3, max = 3, message = "CVV должен содержать 3 цифры")
+    @Pattern(regexp = "^\\d{3}$", message = "CVV должен содержать только 3 цифры")
+    @Column(name = "cvv", nullable = false)
+    private String cvv;
 
     // Связь с пользователем через поле userId. Аннотация ManyToOne указывает на связь "многие к одному" с сущностью User.
     @NotNull
@@ -63,13 +63,13 @@ public class Card {
     public Card() {
     }
 
-    public Card(String number, String name, String expiration, CardStatus status, BigDecimal balance, String ccv, User user) {
+    public Card(String number, String name, String expiration, CardStatus status, BigDecimal balance, String cvv, User user) {
         this.number = number; // изменил ИИ: удалил вызов EncryptionUtil.encrypt, так как шифрование теперь обрабатывается конвертером (соответствие SOLID: OCP - изменения без модификации сущности).
         this.name = name;
         this.expiration = expiration;
         this.status = status;
         this.balance = balance;
-        this.ccv = ccv;
+        this.cvv = cvv;
         this.user = user;
     }
 
@@ -121,12 +121,12 @@ public class Card {
         this.balance = balance;
     }
 
-    public String getCcv() {
-        return ccv;
+    public String getCvv() {
+        return cvv;
     }
 
-    public void setCcv(String ccv) {
-        this.ccv = ccv;
+    public void setCvv(String cvv) {
+        this.cvv = cvv;
     }
 
     public User getUser() {
