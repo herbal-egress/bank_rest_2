@@ -7,11 +7,6 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public enum TransactionStatus {
-    SUCCESS,
-    FAILED
-}
-
 @Entity
 @Table(name = "transactions", schema = "bankrest")
 public class Transaction {

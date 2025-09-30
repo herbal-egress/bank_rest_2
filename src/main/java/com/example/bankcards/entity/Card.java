@@ -8,12 +8,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
-public enum CardStatus {
-    ACTIVE,
-    BLOCKED,
-    EXPIRED
-}
-
 @Entity
 @Table(name = "cards", schema = "bankrest")
 public class Card {
