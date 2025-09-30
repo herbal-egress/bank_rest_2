@@ -1,0 +1,27 @@
+# добавленный код: Настройки для ops (production-like) профиля.
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5434}/bankrest  # добавленный код: Кастомный порт 5434.
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false  # добавленный код: Без показа SQL в прод.
+  liquibase:
+    change-log: classpath:db/migration/changelog-master.yaml
+
+# добавленный код: JWT секреты из окружения.
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# добавленный код: Порт для ops.
+server:
+  port: ${SERVER_PORT:8082}
+
+# добавленный код: Уровень логирования для прод.
+logging:
+  level:
+    root: WARN

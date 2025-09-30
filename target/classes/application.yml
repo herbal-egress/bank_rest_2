@@ -1,0 +1,24 @@
+# добавленный код: Корневая секция Spring для импорта конфигураций.
+spring:
+  # добавленный код: Импорт .env файла как источника свойств (встроенная функция Spring Boot 2.4+).
+  config:
+    import: file:.env[.properties]
+  # добавленный код: Пример конфигурации сервера с использованием переменной из .env.
+  server:
+    port: ${PORT:8080}
+  # добавленный код: Пример конфигурации datasource с использованием переменных из .env.
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  # добавленный код: Пример конфигурации JPA.
+  jpa:
+    hibernate:
+      ddl-auto: update
+  # добавленный код: Пример конфигурации Liquibase.
+  liquibase:
+    change-log: classpath:db/changelog/changelog-master.yaml
+# добавленный код: Пример секции logging с уровнем для пакета проекта.
+logging:
+  level:
+    com.example.bankcards: INFO
