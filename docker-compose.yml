@@ -1,32 +1,32 @@
-# добавленный код: Сервисы (удалена устаревшая 'version: 3.8' для совместимости с Docker Compose v2+).
+
 services:
-  # добавленный код: БД для dev (обновлена версия до актуальной PostgreSQL 18).
+
   db-dev:
-    image: postgres:18
+    image: postgres:17-alpine
     container_name: bank-db-dev
     environment:
       POSTGRES_DB: bankrest
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${DB_PORT:5433}:5432"
+      - "5433:5432"
     volumes:
       - db-dev-data:/var/lib/postgresql/data
 
-  # добавленный код: БД для ops (обновлена версия до актуальной PostgreSQL 18).
+  
   db-ops:
-    image: postgres:18
+    image: postgres:17-alpine
     container_name: bank-db-ops
     environment:
       POSTGRES_DB: bankrest
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "${DB_PORT_OPS:5434}:5432"
+      - "5434:5432"
     volumes:
       - db-ops-data:/var/lib/postgresql/data
 
-  # добавленный код: Приложение для dev (адаптировано под .env: добавлены SPRING_DATASOURCE_* для переопределения из application.yml, с использованием переменных из .env; SOLID: SRP для конфигурации; OWASP: избегание хардкода секретов).
+  
   app-dev:
     build: .
     container_name: bank-app-dev
@@ -40,7 +40,7 @@ services:
     ports:
       - "8081:8080"
 
-# добавленный код: Volumes для персистенции (без изменений).
+
 volumes:
   db-dev-data:
   db-ops-data:
