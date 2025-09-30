@@ -1,9 +1,48 @@
-# 
-# docker-compose.yml — определяет сервисы для разработки и тестирования.
+# добавленный код: Версия docker-compose.
+version: '3.8'
 
-Что нужно сделать:
-  - Настроить сервисы для:
-      - PostgreSQL (или MySQL) с начальной базой.
-      - Приложения Spring Boot (если нужно).
-  - Открыть нужные порты (например, 5432, 8080).
-  - Настроить volume для хранения данных БД.
+# добавленный код: Сервисы.
+services:
+  # добавленный код: БД для dev.
+  db-dev:
+    image: postgres:17  # добавленный код: Последняя версия PostgreSQL.
+    container_name: bank-db-dev
+    environment:
+      POSTGRES_DB: bankrest  # добавленный код: Схема bankrest.
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT:5433}:5432"  # добавленный код: Кастомный порт 5433.
+    volumes:
+      - db-dev-data:/var/lib/postgresql/data  # добавленный код: Персистентный volume.
+
+  # добавленный код: БД для ops.
+  db-ops:
+    image: postgres:17
+    container_name: bank-db-ops
+    environment:
+      POSTGRES_DB: bankrest
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT_OPS:5434}:5432"  # добавленный код: Кастомный порт 5434.
+    volumes:
+      - db-ops-data:/var/lib/postgresql/data
+
+  # добавленный код: Приложение (опционально для dev).
+  app-dev:
+    build: .
+    container_name: bank-app-dev
+    depends_on:
+      - db-dev
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST: db-dev
+      DB_PORT: 5432  # добавленный код: Внутренний порт.
+    ports:
+      - "8081:8081"
+
+# добавленный код: Volumes для персистенции.
+volumes:
+  db-dev-data:
+  db-ops-data:

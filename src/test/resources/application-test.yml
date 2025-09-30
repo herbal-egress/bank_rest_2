@@ -1,0 +1,22 @@
+# добавленный код: Настройки для test профиля.
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/test  # добавленный код: Схема test в той же БД.
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  liquibase:
+    change-log: classpath:db/migration/changelog-master.yaml
+
+# добавленный код: JWT для тестов (мок).
+jwt:
+  secret: test-secret
+  expiration: 3600000
+
+# добавленный код: Порт для тестов.
+server:
+  port: 0  # добавленный код: Случайный порт.
