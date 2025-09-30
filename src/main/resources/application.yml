@@ -1,4 +1,8 @@
 spring:
+  main:
+    banner-mode: off
+---
+spring:
   config:
     import: file:.env[.properties]
   server:
