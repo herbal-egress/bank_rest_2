@@ -6,6 +6,7 @@ import org.springframework.security.authentication.AuthenticationManager; // д�
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider; // добавленный код: импорт провайдера.
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration; // добавленный код: импорт конфигурации.
 import org.springframework.security.config.annotation.web.builders.HttpSecurity; // добавленный код: импорт для HttpSecurity.
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy; // добавленный код: импорт политики сессий.
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // добавленный код: импорт энкодера.
 import org.springframework.security.crypto.password.PasswordEncoder; // добавленный код: импорт интерфейса.
@@ -45,9 +46,15 @@ public class SecurityConfig { // добавленный код: конфигур
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { // добавленный код: цепочка фильтров (новый стиль Spring Security 5.7+).
         http
-                .csrf(csrf -> csrf.disable()) // добавленный код: отключение CSRF (для stateless API; OWASP: защита от CSRF не нужна для JWT).
+                .csrf(AbstractHttpConfigurer::disable) // добавленный код: отключение CSRF (для stateless API; OWASP: защита от CSRF не нужна для JWT).
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // добавленный код: stateless сессии (для JWT).
                 .authorizeHttpRequests(auth -> auth
+                        // swagger доступен без авторизации
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers("/auth/**").permitAll() // добавленный код: permit для auth эндпоинтов (будут добавлены позже).
                         .requestMatchers("/cards/**").hasAnyRole("ADMIN", "USER") // добавленный код: ролевой доступ для карт (ADMIN/USER; OWASP: RBAC).
                         .requestMatchers("/admin/**").hasRole("ADMIN") // добавленный код: только ADMIN для админ эндпоинтов.
