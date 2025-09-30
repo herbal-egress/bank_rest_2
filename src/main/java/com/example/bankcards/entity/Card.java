@@ -1,12 +1,13 @@
 package com.example.bankcards.entity;
 
+// изменил ИИ: Добавлены импорты для EncryptionUtil, User, связи @ManyToOne.
+import com.example.bankcards.util.EncryptionUtil;
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 
-// добавленный код: Enum для status (без изменений, сохранено для целостности).
 enum CardStatus {
     ACTIVE,
     BLOCKED,
@@ -32,7 +33,6 @@ public class Card {
     @Column(name = "name", nullable = false)
     private String name;
 
-    // изменил ИИ: Упростил валидацию для expiration: Разделил на @Size(min=5,max=5) для точной длины MM-YY и @Pattern для формата (01-12 для месяца, две цифры для года). Исправил экранирование \d.
     @NotNull
     @Size(min = 5, max = 5, message = "Срок действия должен быть в формате MM-YY")
     @Pattern(regexp = "^(0[1-9]|1[0-2])-\\d{2}$", message = "Срок действия: месяц 01-12, год две цифры")
@@ -47,28 +47,29 @@ public class Card {
     @Column(name = "balance", nullable = false, precision = 19, scale = 2)
     private BigDecimal balance;
 
-    // изменил ИИ: Упростил валидацию для ccv: Исправил экранирование в @Pattern (\\d{3}); добавил @Size(min=3,max=3) для явной проверки длины, что улучшает читаемость.
     @NotNull
     @Size(min = 3, max = 3, message = "CCV должен состоять ровно из 3 цифр")
     @Pattern(regexp = "^\\d{3}$", message = "CCV: только цифры")
     @Column(name = "ccv", nullable = false)
     private String ccv;
 
+    // изменил ИИ: Поле userId заменено на связь @ManyToOne с User (ТЗ: ролевой доступ).
     @NotNull
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public Card() {
     }
 
-    public Card(String number, String name, String expiration, CardStatus status, BigDecimal balance, String ccv, Long userId) {
-        this.number = number;
+    public Card(String number, String name, String expiration, CardStatus status, BigDecimal balance, String ccv, User user) {
+        this.number = EncryptionUtil.encrypt(number); // изменил ИИ: Шифрование номера при создании.
         this.name = name;
         this.expiration = expiration;
         this.status = status;
         this.balance = balance;
         this.ccv = ccv;
-        this.userId = userId;
+        this.user = user;
     }
 
     public Long getId() {
@@ -80,11 +81,13 @@ public class Card {
     }
 
     public String getNumber() {
-        return number;
+        // изменил ИИ: Дешифрование номера при получении (OWASP: безопасный доступ).
+        return EncryptionUtil.decrypt(number);
     }
 
     public void setNumber(String number) {
-        this.number = number; // TODO: Шифрование через EncryptionUtil перед сохранением (OWASP: данные в покое).
+        // изменил ИИ: Шифрование номера при установке (OWASP: данные в покое).
+        this.number = EncryptionUtil.encrypt(number);
     }
 
     public String getName() {
@@ -127,11 +130,11 @@ public class Card {
         this.ccv = ccv;
     }
 
-    public Long getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 }

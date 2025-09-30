@@ -1,13 +1,37 @@
--- изменил ИИ: Явно указана схема bankrest для всех таблиц и индексов (например, bankrest.cards вместо cards), чтобы устранить ошибку "no schema has been selected to create in" (SOLID: SRP - миграция отвечает за начальную схему; OWASP: безопасное создание без уязвимостей).
+-- изменил ИИ: Добавлены таблицы users, roles, user_roles для аутентификации и ролевого доступа (SOLID: SRP - одна миграция для начальной схемы; OWASP: безопасное создание без уязвимостей).
 -- Создание схемы bankrest, если не существует.
 CREATE SCHEMA IF NOT EXISTS bankrest;
 
--- Установка search_path для bankrest (для совместимости).
+-- Установка search_path для bankrest.
 SET search_path TO bankrest;
 
 -- Удаление таблиц, если они существуют, для предотвращения конфликтов.
+DROP TABLE IF EXISTS bankrest.user_roles CASCADE;
 DROP TABLE IF EXISTS bankrest.transactions CASCADE;
 DROP TABLE IF EXISTS bankrest.cards CASCADE;
+DROP TABLE IF EXISTS bankrest.users CASCADE;
+DROP TABLE IF EXISTS bankrest.roles CASCADE;
+
+-- Создание таблицы users в схеме bankrest.
+CREATE TABLE bankrest.users (
+                                id BIGSERIAL PRIMARY KEY,
+                                username VARCHAR(50) NOT NULL UNIQUE, -- Имя пользователя (уникальное).
+                                password VARCHAR(255) NOT NULL,       -- Хешированный пароль (BCrypt).
+                                email VARCHAR(255) NOT NULL UNIQUE    -- Email (уникальный).
+);
+
+-- Создание таблицы roles в схеме bankrest.
+CREATE TABLE bankrest.roles (
+                                id BIGSERIAL PRIMARY KEY,
+                                name VARCHAR(20) NOT NULL UNIQUE      -- Название роли (ADMIN, USER).
+);
+
+-- Создание таблицы user_roles (связь многие-ко-многим).
+CREATE TABLE bankrest.user_roles (
+                                     user_id BIGINT NOT NULL REFERENCES bankrest.users(id) ON DELETE CASCADE,
+                                     role_id BIGINT NOT NULL REFERENCES bankrest.roles(id) ON DELETE CASCADE,
+                                     PRIMARY KEY (user_id, role_id)
+);
 
 -- Создание таблицы cards в схеме bankrest.
 CREATE TABLE bankrest.cards (
@@ -18,10 +42,10 @@ CREATE TABLE bankrest.cards (
                                 status VARCHAR(20) NOT NULL,     -- Enum: ACTIVE, BLOCKED, EXPIRED.
                                 balance DECIMAL(19,2) NOT NULL,  -- Баланс с 2 знаками.
                                 ccv VARCHAR(3) NOT NULL,         -- CCV 3 цифры.
-                                user_id BIGINT NOT NULL           -- ID пользователя для ролевого доступа.
+                                user_id BIGINT NOT NULL REFERENCES bankrest.users(id) ON DELETE CASCADE -- Связь с пользователем.
 );
 
--- Создание индексов для оптимизации (по user_id и status для поиска "своих карт").
+-- Создание индексов для оптимизации.
 CREATE INDEX idx_cards_user_id ON bankrest.cards(user_id);
 CREATE INDEX idx_cards_status ON bankrest.cards(status);
 
@@ -35,5 +59,5 @@ CREATE TABLE bankrest.transactions (
                                        status VARCHAR(20) NOT NULL                                                 -- Enum: SUCCESS, FAILED.
 );
 
--- Создание индекса для поиска по from_card_id (для логирования транзакций).
+-- Создание индекса для поиска по from_card_id.
 CREATE INDEX idx_transactions_from_card_id ON bankrest.transactions(from_card_id);
