@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 // добавленный код: Импорт для SLF4J логирования.
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.WebRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,5 +46,22 @@ public class GlobalExceptionHandler {
                 .reduce((msg1, msg2) -> msg1 + "; " + msg2)
                 .orElse("Ошибка валидации данных");
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(JwtAuthenticationException.class) // добавленный код: хендлер для JWT исключений.
+    public ResponseEntity<String> handleJwtAuthenticationException(JwtAuthenticationException ex, WebRequest request) { // добавленный код: метод обработки.
+        logger.error("JWT ошибка: {}", ex.getMessage()); // добавленный код: логирование (SLF4J).
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED); // добавленный код: возврат 401 с сообщением.
+    }
+
+    @ExceptionHandler(EncryptionException.class) // добавленный код: хендлер для шифрования.
+    public ResponseEntity<String> handleEncryptionException(EncryptionException ex, WebRequest request) {
+        logger.error("Ошибка шифрования: {}", ex.getMessage());
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(Exception.class) // добавленный код: общий хендлер.
+    public ResponseEntity<String> handleGlobalException(Exception ex, WebRequest request) {
+        logger.error("Общая ошибка: {}", ex.getMessage());
+        return new ResponseEntity<>("Внутренняя ошибка сервера", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

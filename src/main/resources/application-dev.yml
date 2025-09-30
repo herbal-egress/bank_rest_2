@@ -13,5 +13,7 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
+encryption: # изменил ИИ: добавил секцию encryption для конфигурации секрета AES (OWASP: внешняя конфигурация secrets).
+  secret: ${ENCRYPTION_SECRET} # добавленный код: свойство для секрета шифрования, загружается из .env (соответствие современным практикам: переменные окружения).
 server:
   port: ${SERVER_PORT:8081}

@@ -1,7 +1,7 @@
 package com.example.bankcards.entity;
 
-// изменил ИИ: Добавлены импорты для EncryptionUtil, User, связи @ManyToOne.
-import com.example.bankcards.util.EncryptionUtil;
+// Импорт классов для шифрования, пользователя и аннотации ManyToOne.
+import com.example.bankcards.util.EncryptionConverter; // изменил ИИ: добавил импорт для конвертера атрибутов JPA, чтобы перенести логику шифрования из сущности в конвертер (соответствие SOLID: SRP - сущность не отвечает за шифрование; OWASP: централизованная обработка чувствительных данных).
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -23,19 +23,20 @@ public class Card {
     private Long id;
 
     @NotNull
-    @Size(min = 16, max = 16, message = "Номер карты должен состоять ровно из 16 цифр")
+    @Size(min = 16, max = 16, message = "Номер карты должен содержать 16 цифр")
     @Column(name = "number", nullable = false)
+    @Convert(converter = EncryptionConverter.class) // изменил ИИ: добавил аннотацию @Convert для автоматического шифрования/дешифрования номера карты при взаимодействии с БД (соответствие ООП: инкапсуляция; SOLID: DIP - зависимость от абстракции конвертера; OWASP: автоматическая защита данных в покое).
     private String number;
 
     @NotNull
-    @Size(max = 50, message = "Имя владельца не более 50 символов")
-    @Pattern(regexp = "^[A-Za-z]+\\s[A-Za-z]+$", message = "Имя владельца: два слова латиницей, разделенные пробелом")
+    @Size(max = 50, message = "Имя на карте не должно превышать 50 символов")
+    @Pattern(regexp = "^[A-Za-z]+\\s[A-Za-z]+$", message = "Имя должно содержать только буквы и пробел между ними")
     @Column(name = "name", nullable = false)
     private String name;
 
     @NotNull
     @Size(min = 5, max = 5, message = "Срок действия должен быть в формате MM-YY")
-    @Pattern(regexp = "^(0[1-9]|1[0-2])-\\d{2}$", message = "Срок действия: месяц 01-12, год две цифры")
+    @Pattern(regexp = "^(0[1-9]|1[0-2])-\\d{2}$", message = "Срок действия должен быть в формате 01-12 и содержать 2 цифры года")
     @Column(name = "expiration", nullable = false)
     private String expiration;
 
@@ -48,12 +49,12 @@ public class Card {
     private BigDecimal balance;
 
     @NotNull
-    @Size(min = 3, max = 3, message = "CCV должен состоять ровно из 3 цифр")
-    @Pattern(regexp = "^\\d{3}$", message = "CCV: только цифры")
+    @Size(min = 3, max = 3, message = "CCV должен содержать 3 цифры")
+    @Pattern(regexp = "^\\d{3}$", message = "CCV должен содержать только 3 цифры")
     @Column(name = "ccv", nullable = false)
     private String ccv;
 
-    // изменил ИИ: Поле userId заменено на связь @ManyToOne с User (ТЗ: ролевой доступ).
+    // Связь с пользователем через поле userId. Аннотация ManyToOne указывает на связь "многие к одному" с сущностью User.
     @NotNull
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -63,7 +64,7 @@ public class Card {
     }
 
     public Card(String number, String name, String expiration, CardStatus status, BigDecimal balance, String ccv, User user) {
-        this.number = EncryptionUtil.encrypt(number); // изменил ИИ: Шифрование номера при создании.
+        this.number = number; // изменил ИИ: удалил вызов EncryptionUtil.encrypt, так как шифрование теперь обрабатывается конвертером (соответствие SOLID: OCP - изменения без модификации сущности).
         this.name = name;
         this.expiration = expiration;
         this.status = status;
@@ -81,13 +82,11 @@ public class Card {
     }
 
     public String getNumber() {
-        // изменил ИИ: Дешифрование номера при получении (OWASP: безопасный доступ).
-        return EncryptionUtil.decrypt(number);
+        return number; // изменил ИИ: удалил вызов EncryptionUtil.decrypt, так как дешифрование теперь обрабатывается конвертером (соответствие OWASP: минимизация ручной обработки чувствительных данных).
     }
 
     public void setNumber(String number) {
-        // изменил ИИ: Шифрование номера при установке (OWASP: данные в покое).
-        this.number = EncryptionUtil.encrypt(number);
+        this.number = number; // изменил ИИ: удалил вызов EncryptionUtil.encrypt, так как шифрование теперь обрабатывается конвертером.
     }
 
     public String getName() {
