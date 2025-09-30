@@ -1,0 +1,21 @@
+spring:
+  main:
+    banner-mode: off
+---
+spring:
+  config:
+    import: file:.env[.properties]
+  server:
+    port: ${SERVER_PORT}
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+  liquibase:
+    change-log: classpath:db/changelog/changelog-master.yaml
+logging:
+  level:
+    com.example.bankcards: INFO

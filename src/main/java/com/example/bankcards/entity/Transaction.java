@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-enum TransactionStatus {
+public enum TransactionStatus {
     SUCCESS,
     FAILED
 }

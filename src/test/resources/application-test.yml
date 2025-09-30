@@ -14,4 +14,4 @@ jwt:
   secret: test-secret
   expiration: 3600000
 server:
-  port: 0  
+  port: 0

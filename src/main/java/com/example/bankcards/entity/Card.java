@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 
-enum CardStatus {
+public enum CardStatus {
     ACTIVE,
     BLOCKED,
     EXPIRED
