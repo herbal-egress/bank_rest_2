@@ -2,6 +2,8 @@ package com.example.bankcards.exception;
 
 // изменил ИИ: Изменён импорт на RestControllerAdvice для автоматического возврата JSON в REST API (Spring best practice; SOLID: OCP - улучшение без изменения логики; OWASP: последовательная обработка ошибок в API).
 import jakarta.validation.ValidationException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.RestControllerAdvice; // изменил ИИ: Заменил ControllerAdvice на RestControllerAdvice.
 
 // добавленный код: Импорт для ConstraintViolationException (для обработки валидационных ошибок, если потребуется).
@@ -15,11 +17,68 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.WebRequest;
 
-@RestControllerAdvice // изменил ИИ: Изменено на @RestControllerAdvice для корректной работы в REST (автоматический @ResponseBody; Spring: лучшая практика для API).
+import java.util.HashMap;
+import java.util.Map;
+
+// Изменено: Добавлена обработка IllegalArgumentException и улучшены сообщения об ошибках
+// Добавлено: Глобальный обработчик исключений для обработки всех ошибок
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // добавленный код: Логгер для записи ошибок на русском языке (согласно требованиям).
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    // Изменено: Уточнено сообщение
+    @ExceptionHandler(CardNotFoundException.class)
+    public ResponseEntity<String> handleCardNotFoundException(CardNotFoundException ex) {
+        logger.error("Карта не найдена: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ошибка: " + ex.getMessage());
+    }
+
+    // Изменено: Уточнено сообщение
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
+        logger.error("Доступ запрещен: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Ошибка доступа: " + ex.getMessage());
+    }
+
+    // Изменено: Уточнено сообщение
+    @ExceptionHandler(InvalidTransactionException.class)
+    public ResponseEntity<String> handleInvalidTransactionException(InvalidTransactionException ex) {
+        logger.error("Недопустимая транзакция: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка транзакции: " + ex.getMessage());
+    }
+
+    // Изменено: Уточнено сообщение
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<String> handleUserNotFoundException(UserNotFoundException ex) {
+        logger.error("Пользователь не найден: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ошибка: " + ex.getMessage());
+    }
+
+    // Изменено: Добавлена обработка IllegalArgumentException
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        logger.error("Недопустимый аргумент: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Ошибка: " + ex.getMessage());
+    }
+
+    // Изменено: Улучшено логирование ошибок валидации
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), error.getDefaultMessage());
+            logger.error("Ошибка валидации: поле {} - {}", error.getField(), error.getDefaultMessage());
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    // Изменено: Уточнено сообщение
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGeneralException(Exception ex) {
+        logger.error("Внутренняя ошибка сервера: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Внутренняя ошибка сервера: " + ex.getMessage());
+    }
 
     // добавленный код: Сохранён обработчик для EnvLoadException.
     @ExceptionHandler(EnvLoadException.class)
