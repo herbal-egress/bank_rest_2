@@ -2,64 +2,76 @@ package com.example.bankcards.security;
 
 import com.example.bankcards.exception.JwtAuthenticationException;
 import com.example.bankcards.util.JwtUtil;
-import jakarta.servlet.FilterChain; // добавленный код: импорт для цепочки фильтров.
-import jakarta.servlet.ServletException; // добавленный код: импорт исключения.
-import jakarta.servlet.http.HttpServletRequest; // добавленный код: импорт request.
-import jakarta.servlet.http.HttpServletResponse; // добавленный код: импорт response.
-import org.slf4j.Logger; // добавленный код: импорт логгера.
-import org.slf4j.LoggerFactory; // добавленный код: импорт фабрики.
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken; // добавленный код: импорт токена аутентификации.
-import org.springframework.security.core.context.SecurityContextHolder; // добавленный код: импорт контекста.
-import org.springframework.security.core.userdetails.UserDetails; // добавленный код: импорт UserDetails.
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource; // добавленный код: импорт деталей.
-import org.springframework.stereotype.Component; // добавленный код: аннотация Component.
-import org.springframework.web.filter.OncePerRequestFilter; // добавленный код: импорт базового фильтра.
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException; // добавленный код: импорт IOException.
+import java.io.IOException;
 
-@Component // добавленный код: бин для фильтра.
-public class JwtAuthenticationFilter extends OncePerRequestFilter { // добавленный код: фильтр для обработки JWT в каждом запросе (паттерн Filter; OWASP: аутентификация на основе токенов).
+// Без изменений: Компонент для обработки JWT
+@Component
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class); // добавленный код: логгер.
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    private final JwtUtil jwtUtil; // добавленный код: зависимость от JwtUtil.
+    private final JwtUtil jwtUtil;
+    private final UserDetailsServiceImpl userDetailsService;
 
-    private final UserDetailsServiceImpl userDetailsService; // добавленный код: зависимость от сервиса.
-
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) { // добавленный код: конструктор DI.
+    // Без изменений: Конструктор для DI
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException { // добавленный код: основной метод фильтра.
-        String header = request.getHeader("Authorization"); // добавленный код: извлечение заголовка.
+            throws ServletException, IOException {
+        String header = request.getHeader("Authorization");
         String token = null;
         String username = null;
 
-        if (header != null && header.startsWith("Bearer ")) { // добавленный код: проверка Bearer токена.
-            token = header.substring(7); // добавленный код: извлечение токена.
+        // Без изменений: Извлечение токена
+        if (header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
             try {
-                username = jwtUtil.getUsernameFromToken(token); // добавленный код: извлечение username.
+                username = jwtUtil.getUsernameFromToken(token);
             } catch (Exception e) {
-                logger.error("Ошибка извлечения username из JWT: {}", e.getMessage()); // добавленный код: логирование (SLF4J).
+                logger.error("Ошибка извлечения имени пользователя из JWT: {}", e.getMessage());
+                // Изменено: Не выбрасываем исключение, логируем и продолжаем цепочку (OWASP: secure error handling)
             }
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) { // добавленный код: проверка, если аутентификация не установлена.
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username); // добавленный код: загрузка деталей.
-            if (jwtUtil.validateToken(token)) { // добавленный код: валидация токена.
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()); // добавленный код: создание токена аутентификации.
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request)); // добавленный код: установка деталей.
-                SecurityContextHolder.getContext().setAuthentication(authentication); // добавленный код: установка в контекст (ролевый доступ активирован).
-                logger.info("Установлена аутентификация для пользователя: {}", username); // добавленный код: логирование успеха.
-            } else {
-                throw new JwtAuthenticationException("Неверный JWT токен"); // добавленный код: кастомное исключение для блока валидации (OWASP: обработка invalid tokens).
+        // Изменено: Добавлена проверка на null для userDetailsService
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                if (jwtUtil.validateToken(token)) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.info("Установлена аутентификация для пользователя: {}", username);
+                } else {
+                    // Изменено: Логируем и выбрасываем исключение для обработки в GlobalExceptionHandler
+                    logger.error("Недействительный JWT токен для пользователя: {}", username);
+                    throw new JwtAuthenticationException("Недействительный JWT токен");
+                }
+            } catch (JwtAuthenticationException e) {
+                logger.error("Ошибка аутентификации: {}", e.getMessage());
+                throw e; // Изменено: Передаём исключение для обработки в GlobalExceptionHandler
             }
         }
 
-        filterChain.doFilter(request, response); // добавленный код: передача в следующий фильтр (паттерн Chain of Responsibility).
+        // Без изменений: Передача в следующий фильтр
+        filterChain.doFilter(request, response);
     }
 }

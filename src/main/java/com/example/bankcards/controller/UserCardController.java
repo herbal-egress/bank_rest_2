@@ -2,7 +2,10 @@ package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.service.UserCardService;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -15,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
-// Изменено: Уточнена документация и добавлено логирование
+// Изменено: Уточнена документация и добавлено логирование на русском
 // Добавлено: Контроллер для операций пользователя с его картами
 @RestController
 @RequestMapping("/api/user/cards")
@@ -31,33 +34,32 @@ public class UserCardController {
         this.userCardService = userCardService;
     }
 
-    // Изменено: Добавлено логирование параметров фильтрации
+    // Изменено: Добавлено логирование параметров фильтрации на русском, добавлены аннотации валидации (OWASP: input validation, DoS protection)
     @GetMapping
     public ResponseEntity<Page<CardDTO>> getUserCards(
-            @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy) {
-        logger.info("Получен запрос на просмотр карт пользователя: status={}, page={}, size={}, sortBy={}",
-                status, page, size, sortBy);
+            @RequestParam(required = false) @Size(max = 20, message = "Статус карты не должен превышать 20 символов") String status,
+            @RequestParam(defaultValue = "0") @Positive(message = "Номер страницы должен быть положительным") int page,
+            @RequestParam(defaultValue = "10") @Positive(message = "Размер страницы должен быть положительным") @Max(value = 50, message = "Размер страницы не должен превышать 50") int size,
+            @RequestParam(defaultValue = "id") @Size(max = 50, message = "Поле сортировки не должно превышать 50 символов") @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Поле сортировки содержит недопустимые символы") String sortBy) {
+        logger.info("Получен запрос на просмотр карт пользователя: status={}, page={}, size={}, sortBy={}", status, page, size, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<CardDTO> cards = userCardService.getUserCards(status, pageable);
         logger.info("Возвращено {} карт пользователя", cards.getTotalElements());
         return ResponseEntity.ok(cards);
     }
 
-    // Изменено: Уточнено сообщение в ответе
+    // Изменено: Уточнено сообщение в ответе, добавлена валидация cardId (@Positive), логи на русском
     @PostMapping("/block/{cardId}")
-    public ResponseEntity<String> requestBlockCard(@PathVariable Long cardId) {
+    public ResponseEntity<String> requestBlockCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на блокировку карты с ID: {}", cardId);
         String response = userCardService.requestBlockCard(cardId);
         logger.info("Запрос на блокировку карты с ID: {} успешно обработан: {}", cardId, response);
         return ResponseEntity.ok(response);
     }
 
-    // Изменено: Улучшено логирование
+    // Изменено: Улучшено логирование на русском, добавлена валидация cardId (@Positive)
     @GetMapping("/balance/{cardId}")
-    public ResponseEntity<BigDecimal> getCardBalance(@PathVariable Long cardId) {
+    public ResponseEntity<BigDecimal> getCardBalance(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на просмотр баланса карты с ID: {}", cardId);
         BigDecimal balance = userCardService.getCardBalance(cardId);
         logger.info("Баланс карты с ID: {} успешно получен: {}", cardId, balance);
