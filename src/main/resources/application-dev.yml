@@ -10,10 +10,11 @@ spring:
     show-sql: true
   liquibase:
     change-log: classpath:db/migration/changelog-master.yaml
-jwt:
+jwt: # изменил: добавил rotation-interval в существующую секцию
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
-encryption: # изменил ИИ: добавил секцию encryption для конфигурации секрета AES (OWASP: внешняя конфигурация secrets).
-  secret: ${ENCRYPTION_SECRET} # добавленный код: свойство для секрета шифрования, загружается из .env (соответствие современным практикам: переменные окружения).
+  rotation-interval: ${JWT_ROTATION_INTERVAL:86400000} # добавил: для dev (24ч по умолчанию)
+encryption: # Шифрование
+  secret: ${ENCRYPTION_SECRET} # Секрет для шифрования (AES, OWASP: безопасный для секретов).
 server:
   port: ${SERVER_PORT}

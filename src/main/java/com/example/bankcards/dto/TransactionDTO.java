@@ -2,23 +2,31 @@ package com.example.bankcards.dto;
 
 import com.example.bankcards.entity.TransactionStatus;
 
-import java.math.BigDecimal; // изменил: Добавлен импорт для BigDecimal
+import java.math.BigDecimal; // для работы с BigDecimal
 import java.time.LocalDateTime;
+import javax.validation.constraints.NotNull; // добавил: для проверки обязательных полей (OWASP)
+import javax.validation.constraints.Pattern; // добавил: для regex-валидации
+import javax.validation.constraints.DecimalMin; // добавил: для проверки минимального значения (amount > 0)
 
-// изменил: Обновил amount на BigDecimal
+// DTO для представления транзакции, содержит поля amount в формате BigDecimal
 public class TransactionDTO {
     private Long id;
+    @NotNull(message = "Карта-отправитель обязательна") // добавил: валидация fromCard
     private CardDTO fromCard;
+    @NotNull(message = "Карта-получатель обязательна") // добавил: валидация toCard
     private CardDTO toCard;
-    // изменил: Тип amount изменён на BigDecimal
+    @NotNull(message = "Сумма обязательна") // добавил: валидация amount
+    @DecimalMin(value = "0.01", message = "Сумма должна быть положительной") // добавил: минимальная сумма > 0 (OWASP: предотвращение отрицательных значений)
     private BigDecimal amount;
+    // добавил: timestamp генерируется автоматически в сервисе, но валидируем если передаётся
     private LocalDateTime timestamp;
+    @NotNull(message = "Статус транзакции обязателен") // добавил: валидация статуса
     private TransactionStatus status;
 
-    // добавил: Конструктор по умолчанию
+    // конструктор по умолчанию
     public TransactionDTO() {}
 
-    // изменил: Конструктор теперь принимает BigDecimal для amount
+    // конструктор с параметрами
     public TransactionDTO(Long id, CardDTO fromCard, CardDTO toCard, BigDecimal amount, LocalDateTime timestamp, TransactionStatus status) {
         this.id = id;
         this.fromCard = fromCard;
@@ -28,14 +36,14 @@ public class TransactionDTO {
         this.status = status;
     }
 
-    // добавил: Геттеры и сеттеры
+    // геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public CardDTO getFromCard() { return fromCard; }
     public void setFromCard(CardDTO fromCard) { this.fromCard = fromCard; }
     public CardDTO getToCard() { return toCard; }
     public void setToCard(CardDTO toCard) { this.toCard = toCard; }
-    // изменил: Геттер и сеттер для BigDecimal
+    // геттер и сеттер для amount в формате BigDecimal
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public LocalDateTime getTimestamp() { return timestamp; }

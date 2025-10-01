@@ -1,6 +1,10 @@
 spring:
   main:
     banner-mode: off
+jwt: # добавил: секция для JWT (OWASP: централизованная конфигурация ключей)
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+  rotation-interval: ${JWT_ROTATION_INTERVAL:86400000} # добавил: интервал ротации ключей в ms (по умолчанию 24ч; используй в @Scheduled)
 ---
 spring:
   config:
