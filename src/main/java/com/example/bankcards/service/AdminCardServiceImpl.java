@@ -2,6 +2,7 @@ package com.example.bankcards.service;
 
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
+import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.util.CardFactory;
 import com.example.bankcards.util.CardValidator;
@@ -59,7 +60,7 @@ public class AdminCardServiceImpl implements AdminCardService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
                     logger.error("Карта с ID {} не найдена", cardId);
-                    return new IllegalArgumentException("Карта не найдена");
+                    return new CardNotFoundException(cardId);
                 });
         card.setStatus(CardStatus.BLOCKED);
         cardRepository.save(card);
@@ -72,7 +73,7 @@ public class AdminCardServiceImpl implements AdminCardService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
                     logger.error("Карта с ID {} не найдена", cardId);
-                    return new IllegalArgumentException("Карта не найдена");
+                    return new CardNotFoundException(cardId);
                 });
         card.setStatus(CardStatus.ACTIVE);
         cardRepository.save(card);
@@ -84,7 +85,7 @@ public class AdminCardServiceImpl implements AdminCardService {
         logger.info("Удаление карты с ID: {}", cardId);
         if (!cardRepository.existsById(cardId)) {
             logger.error("Карта с ID {} не найдена", cardId);
-            throw new IllegalArgumentException("Карта не найдена");
+            throw new CardNotFoundException(cardId);
         }
         cardRepository.deleteById(cardId);
         logger.info("Карта с ID {} успешно удалена", cardId);

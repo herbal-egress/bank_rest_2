@@ -2,6 +2,7 @@ package com.example.bankcards.service;
 
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
+import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class UserCardServiceImpl implements UserCardService {
         Card card = cardRepository.findByIdAndUserId(cardId, userId)
                 .orElseThrow(() -> {
                     logger.error("Карта с ID {} не найдена для пользователя с ID: {}", cardId, userId);
-                    return new IllegalArgumentException("Карта не найдена или не принадлежит пользователю");
+                    return new CardNotFoundException(cardId, userId);
                 });
         logger.info("Запрос на блокировку карты с ID {} успешно создан", cardId);
         return "Запрос на блокировку карты с ID " + cardId + " успешно отправлен";
@@ -52,7 +53,7 @@ public class UserCardServiceImpl implements UserCardService {
         Card card = cardRepository.findByIdAndUserId(cardId, userId)
                 .orElseThrow(() -> {
                     logger.error("Карта с ID {} не найдена для пользователя с ID: {}", cardId, userId);
-                    return new IllegalArgumentException("Карта не найдена или не принадлежит пользователю");
+                    return new CardNotFoundException(cardId, userId);
                 });
         logger.info("Баланс карты с ID {}: {}", cardId, card.getBalance());
         return card.getBalance();

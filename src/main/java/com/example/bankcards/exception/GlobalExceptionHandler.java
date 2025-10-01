@@ -1,6 +1,7 @@
 package com.example.bankcards.exception;
 
 // изменил ИИ: Изменён импорт на RestControllerAdvice для автоматического возврата JSON в REST API (Spring best practice; SOLID: OCP - улучшение без изменения логики; OWASP: последовательная обработка ошибок в API).
+import jakarta.validation.ValidationException;
 import org.springframework.web.bind.annotation.RestControllerAdvice; // изменил ИИ: Заменил ControllerAdvice на RestControllerAdvice.
 
 // добавленный код: Импорт для ConstraintViolationException (для обработки валидационных ошибок, если потребуется).
@@ -56,5 +57,34 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleGlobalException(Exception ex, WebRequest request) {
         logger.error("Общая ошибка: {}", ex.getMessage());
         return new ResponseEntity<>("Внутренняя ошибка сервера", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    /**
+     * Обрабатывает исключения типа CardNotFoundException.
+     * @param ex исключение
+     * @return ответ с кодом 404
+     */
+    @ExceptionHandler(CardNotFoundException.class)
+    public ResponseEntity<String> handleCardNotFound(CardNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Обрабатывает исключения типа InsufficientBalanceException.
+     * @param ex исключение
+     * @return ответ с кодом 400
+     */
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<String> handleInsufficientBalance(InsufficientBalanceException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    /**
+     * Обрабатывает исключения валидации.
+     * @param ex исключение
+     * @return ответ с кодом 400
+     */
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<String> handleValidation(ValidationException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 }
