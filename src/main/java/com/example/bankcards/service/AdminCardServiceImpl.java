@@ -3,8 +3,8 @@ package com.example.bankcards.service;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.repository.CardRepository;
+import com.example.bankcards.util.CardFactory;
 import com.example.bankcards.util.CardValidator;
-import com.example.bankcards.util.CardGenerator; // добавил: Импорт CardGenerator
 import com.example.bankcards.util.EncryptionUtil;
 import com.example.bankcards.dto.CardDTO;
 import org.slf4j.Logger;
@@ -20,23 +20,20 @@ public class AdminCardServiceImpl implements AdminCardService {
 
     private final CardRepository cardRepository;
     private final EncryptionUtil encryptionUtil;
+    private final CardFactory cardFactory;
 
     @Autowired
-    public AdminCardServiceImpl(CardRepository cardRepository, EncryptionUtil encryptionUtil) {
+    public AdminCardServiceImpl(CardRepository cardRepository, EncryptionUtil encryptionUtil, CardFactory cardFactory) {
         this.cardRepository = cardRepository;
         this.encryptionUtil = encryptionUtil;
+        this.cardFactory = cardFactory;
     }
 
     @Override
     public Card createCard(Long userId, String name) {
         logger.info("Создание карты для пользователя с ID: {}", userId);
 
-        CardDTO cardDTO = new CardDTO();
-        cardDTO.setName(name);
-        cardDTO.setNumber(CardGenerator.generateCardNumber()); // изменил: Используем CardGenerator
-        cardDTO.setCvv(CardGenerator.generateCcv()); // изменил: Используем CardGenerator
-        cardDTO.setBalance(BigDecimal.ZERO);
-
+        CardDTO cardDTO = cardFactory.createCard(name, userId); // изменил: Используем createCard вместо createCardDTO
         CardValidator.validateCard(cardDTO);
 
         Card card = new Card();
@@ -44,7 +41,7 @@ public class AdminCardServiceImpl implements AdminCardService {
         card.setName(name);
         card.setNumber(cardDTO.getNumber());
         card.setCvv(cardDTO.getCvv());
-        card.setExpiration(CardGenerator.generateExpirationDate()); // изменил: Используем CardGenerator
+        card.setExpiration(cardDTO.getExpiration());
         card.setStatus(CardStatus.ACTIVE);
         card.setBalance(BigDecimal.ZERO);
 
