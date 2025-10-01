@@ -23,14 +23,12 @@ INSERT INTO bankrest.roles (id, name) VALUES
 -- =====================================================================
 -- 2. Пользователи
 -- BCrypt-хэши паролей:
---   "admin123" = $2a$10$Dow1PsguODT0pKg4MmILmu/RYlS5UBn9MCr7K6lf.xGjGoaDzpLtu
---   "user123"  = $2a$10$FfnEAFSqd7qZJfG68HGhMe1Bp3KboXTzFlsqwnMTaOQpu/8nb0cfO
---   "test123"  = $2a$10$bgVwJfJRGUt96zizVRDCwOBGnbbDF1VtlcfIFJ2v1iFZSPYyk7Hpa
+-- "123" = $2a$12$EV3Y8ix.yK9x6w0xONiOgeq9rxDF5ZZomKVD.SknKIkOIbkijdsRy
 INSERT INTO bankrest.users (id, username, password, email) VALUES
-                                                               (1, 'admin', '$2a$10$Dow1PsguODT0pKg4MmILmu/RYlS5UBn9MCr7K6lf.xGjGoaDzpLtu', 'admin@bank.test'),
-                                                               (2, 'user',  '$2a$10$FfnEAFSqd7qZJfG68HGhMe1Bp3KboXTzFlsqwnMTaOQpu/8nb0cfO', 'user@bank.test'),
-                                                               (3, 'test1', '$2a$10$bgVwJfJRGUt96zizVRDCwOBGnbbDF1VtlcfIFJ2v1iFZSPYyk7Hpa', 'test1@bank.test'),
-                                                               (4, 'test2', '$2a$10$bgVwJfJRGUt96zizVRDCwOBGnbbDF1VtlcfIFJ2v1iFZSPYyk7Hpa', 'test2@bank.test');
+                                                               (1, 'admin', '$2a$12$EV3Y8ix.yK9x6w0xONiOgeq9rxDF5ZZomKVD.SknKIkOIbkijdsRy', 'admin@bank.test'),
+                                                               (2, 'user',  '$2a$12$EV3Y8ix.yK9x6w0xONiOgeq9rxDF5ZZomKVD.SknKIkOIbkijdsRy', 'user@bank.test'),
+                                                               (3, 'test1', '$2a$12$EV3Y8ix.yK9x6w0xONiOgeq9rxDF5ZZomKVD.SknKIkOIbkijdsRy', 'test1@bank.test'),
+                                                               (4, 'test2', '$2a$12$EV3Y8ix.yK9x6w0xONiOgeq9rxDF5ZZomKVD.SknKIkOIbkijdsRy', 'test2@bank.test');
 
 -- =====================================================================
 -- 3. Связь user_roles

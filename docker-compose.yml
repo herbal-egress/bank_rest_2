@@ -10,7 +10,7 @@ services:
       - db-dev
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db-dev:5432/bankrest
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bankrest
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
     networks:
