@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/admin/cards")
 @PreAuthorize("hasRole('ADMIN')")
-@Tag(name = "Администратор", description = "Операции с картами")
+@Tag(name = "Операции с картами. Администратор", description = "только ADMIN")
 public class AdminCardController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminCardController.class);

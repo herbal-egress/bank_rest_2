@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
-@Tag(name = "Администратор", description = "Операции с пользователями")
+@Tag(name = "Операции с пользователями", description = "только ADMIN")
 public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);

@@ -23,7 +23,7 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/user/cards")
 @PreAuthorize("hasRole('USER')")
-@Tag(name = "user", description = "Операции пользователя с его картами")
+@Tag(name = "Операции с картами. Пользователь", description = "только USER")
 public class UserCardController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserCardController.class);

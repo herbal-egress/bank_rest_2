@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 // Добавлено: Контроллер для авторизации (SOLID: SRP, REST)
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "auth", description = "Операции авторизации")
+@Tag(name = "Авторизация", description = "ввод логина и пароля, генерация токена")
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
