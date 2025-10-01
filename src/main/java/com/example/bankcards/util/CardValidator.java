@@ -1,7 +1,7 @@
 package com.example.bankcards.util;
 
 import com.example.bankcards.dto.CardDTO;
-import javax.validation.ValidationException;
+import jakarta.validation.ValidationException;
 
 /**
  * Утилита для валидации данных карты.
@@ -27,7 +27,7 @@ public class CardValidator {
             throw new ValidationException("Имя владельца должно состоять из двух слов, латиница, до 50 символов");
         }
         // Добавлено: Проверка CCV
-        if (!cardDTO.getCcv().matches(CCV_PATTERN)) {
+        if (!cardDTO.getCvv().matches(CCV_PATTERN)) {
             throw new ValidationException("CCV должен содержать 3 цифры");
         }
         // Добавлено: Проверка баланса

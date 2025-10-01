@@ -1,6 +1,10 @@
 spring:
   main:
     banner-mode: off
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterAccess=600s
 jwt: # добавил: секция для JWT (OWASP: централизованная конфигурация ключей)
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
@@ -9,8 +13,7 @@ jwt: # добавил: секция для JWT (OWASP: централизова�
 spring:
   config:
     import: file:.env[.properties]
-  server:
-    port: ${SERVER_PORT}
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -19,7 +22,7 @@ spring:
     hibernate:
       ddl-auto: update
   liquibase:
-    change-log: classpath:db/changelog/changelog-master.yaml
+     change-log: classpath:db/changelog/changelog-master.yaml
 logging:
   level:
     com.example.bankcards: INFO

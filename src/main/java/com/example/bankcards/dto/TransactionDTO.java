@@ -4,9 +4,9 @@ import com.example.bankcards.entity.TransactionStatus;
 
 import java.math.BigDecimal; // для работы с BigDecimal
 import java.time.LocalDateTime;
-import javax.validation.constraints.NotNull; // добавил: для проверки обязательных полей (OWASP)
-import javax.validation.constraints.Pattern; // добавил: для regex-валидации
-import javax.validation.constraints.DecimalMin; // добавил: для проверки минимального значения (amount > 0)
+
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 
 // DTO для представления транзакции, содержит поля amount в формате BigDecimal
 public class TransactionDTO {

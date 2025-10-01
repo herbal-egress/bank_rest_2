@@ -1,10 +1,10 @@
 package com.example.bankcards.dto;
 
 import com.example.bankcards.entity.CardStatus;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.math.BigDecimal; // для работы с большими десятичными числами
-import javax.validation.constraints.NotNull; // добавил: для проверки обязательных полей (OWASP: предотвращение null-атак)
-import javax.validation.constraints.Pattern; // добавил: для regex-валидации строк (OWASP: защита от инъекций)
 
 // DTO для представления данных карты
 public class CardDTO {
