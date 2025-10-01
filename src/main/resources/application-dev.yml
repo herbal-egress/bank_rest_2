@@ -1,4 +1,7 @@
+# src/main/resources/application-dev.yml
 spring:
+  config:
+    import: optional:file:.env[.properties]  # добавлено: явный импорт для dev профиля (для подстановки ${JWT_SECRET})
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/bankrest
     username: ${DB_USERNAME}
@@ -10,11 +13,15 @@ spring:
     show-sql: true
   liquibase:
     change-log: classpath:db/migration/changelog-master.yaml
-jwt: # изменил: добавил rotation-interval в существующую секцию
+jwt:  # секция остаётся без изменений, но теперь ${JWT_SECRET} подставится
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
-  rotation-interval: ${JWT_ROTATION_INTERVAL:86400000} # добавил: для dev (24ч по умолчанию)
-encryption: # Шифрование
-  secret: ${ENCRYPTION_SECRET} # Секрет для шифрования (AES, OWASP: безопасный для секретов).
+  rotation-interval: ${JWT_ROTATION_INTERVAL:86400000}
+encryption:  # секция остаётся без изменений
+  secret: ${ENCRYPTION_SECRET}
 server:
   port: ${SERVER_PORT}
+logging:
+  level:
+    org.springframework.boot.context.config: DEBUG  # добавлено: для отладки подстановки ${JWT_SECRET}
+    com.example.bankcards.util: DEBUG  # добавлено: для логов JwtUtilImpl

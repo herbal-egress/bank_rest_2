@@ -3,6 +3,7 @@ package com.example.bankcards.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -12,12 +13,16 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Реализация утилиты для работы с JWT.
  */
 @Component
 public class JwtUtilImpl implements JwtUtil {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtUtilImpl.class); // добавлено: для логирования
 
     @Value("${jwt.secret}")
     private String secret;
@@ -28,8 +33,24 @@ public class JwtUtilImpl implements JwtUtil {
     private Key currentSecret;
 
     public JwtUtilImpl() {
-        // добавил: Инициализация ключа из secret (OWASP: конфигурируемый ключ)
+        // изменено: Убрана инициализация currentSecret из конструктора (перенесено в @PostConstruct)
+    }
+
+    /**
+     * Инициализация ключа после внедрения свойств.
+     */
+    @PostConstruct
+    public void init() {
+        // добавлено: Проверка secret на null и длину (OWASP: безопасный ключ)
+        if (secret == null || secret.trim().isEmpty()) {
+            throw new IllegalStateException("JWT secret must not be null or empty. Check 'jwt.secret' in application properties or .env (JWT_SECRET).");
+        }
+        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 bytes (256 bits) for HmacSHA256. Current length: " + secret.getBytes(StandardCharsets.UTF_8).length);
+        }
+        // добавлено: Инициализация ключа после проверки
         this.currentSecret = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        logger.info("JWT secret initialized successfully. Secret length: {} bytes", secret.getBytes(StandardCharsets.UTF_8).length); // добавлено: логирование
     }
 
     /**
@@ -37,7 +58,9 @@ public class JwtUtilImpl implements JwtUtil {
      * @return новый ключ
      */
     private Key generateNewSecret() {
-        // добавил: Генерация нового ключа из UUID (OWASP: сильные ключи)
+        // добавлено: Логирование ротации ключа
+        logger.info("Rotating JWT secret key");
+        // изменил: Генерация нового ключа из UUID (OWASP: сильные ключи)
         return Keys.hmacShaKeyFor(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8));
     }
 
@@ -48,12 +71,12 @@ public class JwtUtilImpl implements JwtUtil {
      */
     @Override
     public String generateToken(UserDetails userDetails) {
-        // изменил: Использование нового API Jwts.builder() и signWith(Key)
+        // без изменений: Использование нового API Jwts.builder()
         return Jwts.builder()
-                .subject(userDetails.getUsername()) // изменил: Новый метод без setSubject
-                .issuedAt(new Date()) // изменил: Новый метод без setIssuedAt
-                .expiration(new Date(System.currentTimeMillis() + expiration)) // изменил: Новый метод без setExpiration
-                .signWith(currentSecret) // изменил: Использование Key вместо String и SignatureAlgorithm
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(currentSecret)
                 .compact();
     }
 
@@ -65,14 +88,15 @@ public class JwtUtilImpl implements JwtUtil {
     @Override
     public String getUsernameFromToken(String token) {
         try {
-            // изменил: Новый API для парсинга с JwtParserBuilder
+            // без изменений: Новый API для парсинга
             Claims claims = Jwts.parser()
-                    .verifyWith((SecretKey) currentSecret) // изменил: Новый метод verifyWith(Key)
+                    .verifyWith((SecretKey) currentSecret)
                     .build()
-                    .parseSignedClaims(token) // изменил: parseSignedClaims вместо parseClaimsJws
+                    .parseSignedClaims(token)
                     .getPayload();
             return claims.getSubject();
         } catch (Exception e) {
+            logger.warn("Failed to extract username from token: {}", e.getMessage()); // добавлено: логирование ошибки
             return null;
         }
     }
@@ -85,13 +109,14 @@ public class JwtUtilImpl implements JwtUtil {
     @Override
     public boolean validateToken(String token) {
         try {
-            // изменил: Новый API для валидации
+            // без изменений: Новый API для валидации
             Jwts.parser()
-                    .verifyWith((SecretKey) currentSecret) // изменил: Новый метод verifyWith(Key)
+                    .verifyWith((SecretKey) currentSecret)
                     .build()
-                    .parseSignedClaims(token); // изменил: parseSignedClaims вместо parseClaimsJws
+                    .parseSignedClaims(token);
             return true;
         } catch (Exception e) {
+            logger.warn("Token validation failed: {}", e.getMessage()); // добавлено: логирование ошибки
             return false;
         }
     }
@@ -100,7 +125,7 @@ public class JwtUtilImpl implements JwtUtil {
      * Ротирует ключ JWT.
      */
     public void rotateKey() {
-        // изменил: Ротация с новым ключом
+        // без изменений: Ротация с новым ключом
         this.currentSecret = generateNewSecret();
     }
 }

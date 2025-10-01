@@ -1,19 +1,15 @@
+# src/main/resources/application.yml
 spring:
+  config:
+    import: optional:file:.env[.properties]  # изменено: перемещено в начало для глобальной подстановки ${JWT_SECRET} и других
   main:
     banner-mode: off
   cache:
     type: caffeine
     caffeine:
       spec: maximumSize=500,expireAfterAccess=600s
-jwt: # добавил: секция для JWT (OWASP: централизованная конфигурация ключей)
-  secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:86400000}
-  rotation-interval: ${JWT_ROTATION_INTERVAL:86400000} # добавил: интервал ротации ключей в ms (по умолчанию 24ч; используй в @Scheduled)
 ---
 spring:
-  config:
-    import: file:.env[.properties]
-
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -22,7 +18,7 @@ spring:
     hibernate:
       ddl-auto: update
   liquibase:
-     change-log: classpath:db/changelog/changelog-master.yaml
+    change-log: classpath:db/changelog/changelog-master.yaml
 logging:
   level:
     com.example.bankcards: INFO
