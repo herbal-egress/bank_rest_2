@@ -3,6 +3,8 @@ package com.example.bankcards.controller;
 import com.example.bankcards.dto.CardCreationDTO;
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.service.AdminCardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Pattern;
@@ -18,23 +20,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-// Изменено: Добавлены аннотации валидации для параметров запросов (OWASP: input validation)
+// Изменено: Добавлена аннотация @Tag для группировки в Swagger
 @RestController
 @RequestMapping("/api/admin/cards")
 @PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Администратор", description = "Операции с картами")
 public class AdminCardController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminCardController.class);
 
     private final AdminCardService adminCardService;
 
-    // Без изменений: Инъекция зависимости через конструктор (SOLID: DIP)
     public AdminCardController(AdminCardService adminCardService) {
         this.adminCardService = adminCardService;
     }
 
-    // Изменено: Добавлена валидация userId (@Positive) и уточнены сообщения логов на русском
     @PostMapping("/create/{userId}")
+    @Operation(summary = "Создание карты для пользователя", description = "Создаёт новую карту для указанного пользователя")
     public ResponseEntity<CardDTO> createCard(@PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId,
                                               @Valid @RequestBody CardCreationDTO cardCreationDTO) {
         logger.info("Получен запрос на создание карты для пользователя с ID: {}, имя: {}", userId, cardCreationDTO.getName());
@@ -43,8 +45,8 @@ public class AdminCardController {
         return ResponseEntity.status(201).body(createdCard);
     }
 
-    // Изменено: Добавлены аннотации валидации (@Positive, @Size, @Pattern), ограничение size (OWASP: DoS protection)
     @GetMapping
+    @Operation(summary = "Получение всех карт", description = "Возвращает список карт с фильтрацией, пагинацией и сортировкой")
     public ResponseEntity<Page<CardDTO>> getAllCards(
             @RequestParam(required = false) @Positive(message = "ID пользователя должен быть положительным") Long userId,
             @RequestParam(required = false) @Size(max = 20, message = "Статус карты не должен превышать 20 символов") String status,
@@ -58,8 +60,8 @@ public class AdminCardController {
         return ResponseEntity.ok(cards);
     }
 
-    // Изменено: Добавлена валидация cardId (@Positive) и уточнены сообщения логов на русском
     @PutMapping("/activate/{cardId}")
+    @Operation(summary = "Активация карты", description = "Активирует карту по её ID")
     public ResponseEntity<CardDTO> activateCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на активацию карты с ID: {}", cardId);
         CardDTO activatedCard = adminCardService.activateCard(cardId);
@@ -67,8 +69,8 @@ public class AdminCardController {
         return ResponseEntity.ok(activatedCard);
     }
 
-    // Изменено: Добавлена валидация cardId (@Positive) и уточнены сообщения логов на русском
     @PutMapping("/block/{cardId}")
+    @Operation(summary = "Блокировка карты", description = "Блокирует карту по её ID")
     public ResponseEntity<CardDTO> blockCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на блокировку карты с ID: {}", cardId);
         CardDTO blockedCard = adminCardService.blockCard(cardId);
@@ -76,8 +78,8 @@ public class AdminCardController {
         return ResponseEntity.ok(blockedCard);
     }
 
-    // Изменено: Добавлена валидация cardId (@Positive) и уточнены сообщения логов на русском
     @DeleteMapping("/{cardId}")
+    @Operation(summary = "Удаление карты", description = "Удаляет карту по её ID")
     public ResponseEntity<Void> deleteCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на удаление карты с ID: {}", cardId);
         adminCardService.deleteCard(cardId);

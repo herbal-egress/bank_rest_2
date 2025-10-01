@@ -2,6 +2,8 @@ package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.service.UserCardService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
@@ -18,24 +20,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
-// Изменено: Уточнена документация и добавлено логирование на русском
-// Добавлено: Контроллер для операций пользователя с его картами
 @RestController
 @RequestMapping("/api/user/cards")
 @PreAuthorize("hasRole('USER')")
+@Tag(name = "user", description = "Операции пользователя с его картами")
 public class UserCardController {
 
     private static final Logger logger = LoggerFactory.getLogger(UserCardController.class);
 
     private final UserCardService userCardService;
 
-    // Добавлено: Инъекция зависимости сервиса через конструктор для соблюдения DI (SOLID)
     public UserCardController(UserCardService userCardService) {
         this.userCardService = userCardService;
     }
 
-    // Изменено: Добавлено логирование параметров фильтрации на русском, добавлены аннотации валидации (OWASP: input validation, DoS protection)
     @GetMapping
+    @Operation(summary = "Получение карт пользователя", description = "Возвращает список карт пользователя с фильтрацией и пагинацией")
     public ResponseEntity<Page<CardDTO>> getUserCards(
             @RequestParam(required = false) @Size(max = 20, message = "Статус карты не должен превышать 20 символов") String status,
             @RequestParam(defaultValue = "0") @Positive(message = "Номер страницы должен быть положительным") int page,
@@ -48,8 +48,8 @@ public class UserCardController {
         return ResponseEntity.ok(cards);
     }
 
-    // Изменено: Уточнено сообщение в ответе, добавлена валидация cardId (@Positive), логи на русском
     @PostMapping("/block/{cardId}")
+    @Operation(summary = "Запрос на блокировку карты", description = "Отправляет запрос на блокировку карты по её ID")
     public ResponseEntity<String> requestBlockCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на блокировку карты с ID: {}", cardId);
         String response = userCardService.requestBlockCard(cardId);
@@ -57,8 +57,8 @@ public class UserCardController {
         return ResponseEntity.ok(response);
     }
 
-    // Изменено: Улучшено логирование на русском, добавлена валидация cardId (@Positive)
     @GetMapping("/balance/{cardId}")
+    @Operation(summary = "Получение баланса карты", description = "Возвращает баланс карты по её ID")
     public ResponseEntity<BigDecimal> getCardBalance(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на просмотр баланса карты с ID: {}", cardId);
         BigDecimal balance = userCardService.getCardBalance(cardId);

@@ -4,11 +4,13 @@ import com.example.bankcards.exception.JwtExpiredException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -71,11 +73,13 @@ public class JwtUtilImpl implements JwtUtil {
 
     // Без изменений: Генерация токена
     @Override
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(Authentication authentication) {
+        String username = authentication.getName();
+        logger.info("Генерация токена для пользователя: {}", username);
         return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(currentSecret)
                 .compact();
     }

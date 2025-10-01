@@ -3,6 +3,8 @@ package com.example.bankcards.controller;
 import com.example.bankcards.dto.UserCreationDTO;
 import com.example.bankcards.dto.UserResponseDTO;
 import com.example.bankcards.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.slf4j.Logger;
@@ -13,24 +15,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// Изменено: Используются UserCreationDTO и UserResponseDTO для безопасности, логи на русском
-// Добавлено: Контроллер для управления пользователями администратором
 @RestController
 @RequestMapping("/api/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Администратор", description = "Операции с пользователями")
 public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
     private final AuthService authService;
 
-    // Добавлено: Инъекция зависимости сервиса через конструктор для соблюдения DI (SOLID)
     public AdminController(AuthService authService) {
         this.authService = authService;
     }
 
-    // Изменено: Используется UserCreationDTO, логи на русском
     @PostMapping
+    @Operation(summary = "Создание пользователя", description = "Создаёт нового пользователя")
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserCreationDTO userDTO) {
         logger.info("Получен запрос на создание пользователя: {}", userDTO.getUsername());
         UserResponseDTO createdUser = authService.createUser(userDTO);
@@ -38,8 +38,8 @@ public class AdminController {
         return ResponseEntity.status(201).body(createdUser);
     }
 
-    // Изменено: Возвращается List<UserResponseDTO>, логи на русском
     @GetMapping
+    @Operation(summary = "Получение всех пользователей", description = "Возвращает список всех пользователей")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         logger.info("Получен запрос на получение списка всех пользователей");
         List<UserResponseDTO> users = authService.getAllUsers();
@@ -47,8 +47,8 @@ public class AdminController {
         return ResponseEntity.ok(users);
     }
 
-    // Изменено: Используется UserCreationDTO для входных данных и UserResponseDTO для ответа, добавлена @Positive для userId, логи на русском
     @PutMapping("/{userId}")
+    @Operation(summary = "Обновление пользователя", description = "Обновляет данные пользователя по его ID")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId, @Valid @RequestBody UserCreationDTO userDTO) {
         logger.info("Получен запрос на обновление пользователя с ID: {}", userId);
         UserResponseDTO updatedUser = authService.updateUser(userId, userDTO);
@@ -56,8 +56,8 @@ public class AdminController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    // Изменено: Улучшено логирование на русском, добавлена @Positive для userId
     @DeleteMapping("/{userId}")
+    @Operation(summary = "Удаление пользователя", description = "Удаляет пользователя по его ID")
     public ResponseEntity<Void> deleteUser(@PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId) {
         logger.info("Получен запрос на удаление пользователя с ID: {}", userId);
         authService.deleteUser(userId);

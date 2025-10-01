@@ -2,6 +2,8 @@ package com.example.bankcards.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -42,7 +44,8 @@ public class SecurityConfig {
                 )
                 // Изменено: Уточнены маршруты для ролевого доступа и Swagger
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**"
+                                , "/swagger-ui.html", "/webjars/**", "/api-docs/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasRole("USER")
                         .anyRequest().authenticated()
@@ -58,4 +61,8 @@ public class SecurityConfig {
         // Без изменений: Бин для PasswordEncoder с использованием BCrypt (OWASP: сильное хеширование)
         return new BCryptPasswordEncoder();
     }
-}
+// Добавлено: Бин для AuthenticationManager
+@Bean
+public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+    return authConfig.getAuthenticationManager();
+}}
