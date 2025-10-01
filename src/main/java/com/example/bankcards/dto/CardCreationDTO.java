@@ -4,15 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-// Добавлено: DTO для создания карты, ограничивает входные данные
+// Добавлено: DTO для создания карты
 public class CardCreationDTO {
-
     @NotBlank(message = "Имя владельца не может быть пустым")
     @Size(max = 50, message = "Имя владельца не должно превышать 50 символов")
     @Pattern(regexp = "^[A-Za-z]+\\s[A-Za-z]+$", message = "Имя владельца должно состоять из двух слов на латинице")
     private String name;
 
-    // Добавлено: Геттеры и сеттеры
     public String getName() {
         return name;
     }

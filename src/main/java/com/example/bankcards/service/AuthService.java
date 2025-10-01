@@ -1,7 +1,13 @@
 package com.example.bankcards.service;
 
-// добавил: Интерфейс для сервиса аутентификации
+import com.example.bankcards.dto.UserCreationDTO;
+import com.example.bankcards.dto.UserResponseDTO;
+import java.util.List;
+
+// Добавлено: Интерфейс для управления пользователями
 public interface AuthService {
-    // добавил: Метод для аутентификации и генерации JWT-токена
-    String authenticate(String username, String password);
+    UserResponseDTO createUser(UserCreationDTO userDTO);
+    List<UserResponseDTO> getAllUsers();
+    UserResponseDTO updateUser(Long userId, UserCreationDTO userDTO);
+    void deleteUser(Long userId);
 }

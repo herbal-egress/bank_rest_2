@@ -1,88 +1,94 @@
 package com.example.bankcards.service;
 
+import com.example.bankcards.dto.TransactionDTO;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.Transaction;
 import com.example.bankcards.entity.TransactionStatus;
+import com.example.bankcards.exception.CardNotFoundException;
+import com.example.bankcards.exception.InvalidTransactionException;
+import com.example.bankcards.exception.AccessDeniedException;
+import com.example.bankcards.mapper.TransactionMapper;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransactionRepository;
+import com.example.bankcards.security.UserDetailsImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal; // изменил: Добавлен импорт для BigDecimal
 import java.time.LocalDateTime;
 
-// изменил: Обновил для работы с BigDecimal
 @Service
 public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);
 
     private final CardRepository cardRepository;
     private final TransactionRepository transactionRepository;
+    private final TransactionMapper transactionMapper;
 
-    @Autowired
-    // добавил: Конструктор для внедрения зависимостей
-    public TransactionServiceImpl(CardRepository cardRepository, TransactionRepository transactionRepository) {
+    // Добавлено: Конструктор с зависимостями
+    public TransactionServiceImpl(CardRepository cardRepository, TransactionRepository transactionRepository,
+                                  TransactionMapper transactionMapper) {
         this.cardRepository = cardRepository;
         this.transactionRepository = transactionRepository;
+        this.transactionMapper = transactionMapper;
     }
 
-    // изменил: Параметр amount теперь BigDecimal
     @Override
     @Transactional
-    public Transaction transfer(Long fromCardId, Long toCardId, BigDecimal amount, Long userId) {
-        logger.info("Инициирование перевода с карты ID {} на карту ID {} на сумму {} для пользователя ID {}",
-                fromCardId, toCardId, amount, userId);
+    public TransactionDTO transfer(TransactionDTO transactionDTO) {
+        Long userId = getCurrentUserId();
+        logger.info("Выполнение перевода с карты {} на карту {} на сумму {} для пользователя с ID: {}",
+                transactionDTO.getFromCard().getId(), transactionDTO.getToCard().getId(),
+                transactionDTO.getAmount(), userId);
 
-        // изменил: Валидация входных данных для BigDecimal
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            logger.error("Сумма перевода должна быть положительной: {}", amount);
-            throw new IllegalArgumentException("Сумма перевода должна быть положительной");
+        // Добавлено: Проверка принадлежности карт пользователю
+        Card fromCard = cardRepository.findByIdAndUserId(transactionDTO.getFromCard().getId(), userId)
+                .orElseThrow(() -> {
+                    logger.error("Карта отправителя с ID {} не найдена для пользователя с ID: {}",
+                            transactionDTO.getFromCard().getId(), userId);
+                    return new CardNotFoundException("Карта отправителя с ID " + transactionDTO.getFromCard().getId() + " не найдена");
+                });
+        Card toCard = cardRepository.findByIdAndUserId(transactionDTO.getToCard().getId(), userId)
+                .orElseThrow(() -> {
+                    logger.error("Карта получателя с ID {} не найдена для пользователя с ID: {}",
+                            transactionDTO.getToCard().getId(), userId);
+                    return new CardNotFoundException("Карта получателя с ID " + transactionDTO.getToCard().getId() + " не найдена");
+                });
+
+        // Добавлено: Валидация транзакции
+        if (fromCard.getBalance().compareTo(transactionDTO.getAmount()) < 0) {
+            logger.error("Недостаточно средств на карте с ID: {}", fromCard.getId());
+            throw new InvalidTransactionException("Недостаточно средств на карте с ID " + fromCard.getId());
         }
-
-        // добавил: Проверка карт
-        Card fromCard = cardRepository.findByIdAndUserId(fromCardId, userId)
-                .orElseThrow(() -> {
-                    logger.error("Исходная карта с ID {} не найдена для пользователя с ID: {}", fromCardId, userId);
-                    return new IllegalArgumentException("Исходная карта не найдена или не принадлежит пользователю");
-                });
-        Card toCard = cardRepository.findByIdAndUserId(toCardId, userId)
-                .orElseThrow(() -> {
-                    logger.error("Целевая карта с ID {} не найдена для пользователя с ID: {}", toCardId, userId);
-                    return new IllegalArgumentException("Целевая карта не найдена или не принадлежит пользователю");
-                });
-
-        // изменил: Проверка баланса для BigDecimal
         if (fromCard.getStatus() != CardStatus.ACTIVE || toCard.getStatus() != CardStatus.ACTIVE) {
-            logger.error("Одна из карт не активна: fromCardStatus={}, toCardStatus={}",
-                    fromCard.getStatus(), toCard.getStatus());
-            throw new IllegalStateException("Обе карты должны быть активны");
-        }
-        if (fromCard.getBalance().compareTo(amount) < 0) {
-            logger.error("Недостаточно средств на карте с ID {}: баланс={}, сумма={}",
-                    fromCardId, fromCard.getBalance(), amount);
-            throw new IllegalStateException("Недостаточно средств на карте");
+            logger.error("Одна из карт не активна: fromCardId={}, toCardId={}", fromCard.getId(), toCard.getId());
+            throw new InvalidTransactionException("Одна из карт не активна");
         }
 
-        // изменил: Обновление баланса с использованием BigDecimal
-        fromCard.setBalance(fromCard.getBalance().subtract(amount));
-        toCard.setBalance(toCard.getBalance().add(amount));
+        // Добавлено: Выполнение перевода
+        fromCard.setBalance(fromCard.getBalance().subtract(transactionDTO.getAmount()));
+        toCard.setBalance(toCard.getBalance().add(transactionDTO.getAmount()));
         cardRepository.save(fromCard);
         cardRepository.save(toCard);
 
-        // изменил: Сохранение транзакции с BigDecimal
-        Transaction transaction = new Transaction();
-        transaction.setFromCard(fromCard);
-        transaction.setToCard(toCard);
-        transaction.setAmount(amount);
+        // Добавлено: Создание транзакции
+        Transaction transaction = transactionMapper.toEntity(transactionDTO);
         transaction.setTimestamp(LocalDateTime.now());
-        transaction.setStatus(TransactionStatus.SUCCESS);
-
+        transaction.setStatus(TransactionStatus.COMPLETED);
         Transaction savedTransaction = transactionRepository.save(transaction);
-        logger.info("Перевод успешно выполнен: транзакция ID {}", savedTransaction.getId());
-        return savedTransaction;
+        logger.info("Перевод успешно выполнен: ID транзакции {}", savedTransaction.getId());
+        return transactionMapper.toDTO(savedTransaction);
+    }
+
+    // Добавлено: Получение userId из SecurityContext
+    private Long getCurrentUserId() {
+        var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetailsImpl userDetails) {
+            return userDetails.getUser().getId();
+        }
+        throw new AccessDeniedException("Не удалось получить ID пользователя из контекста безопасности");
     }
 }

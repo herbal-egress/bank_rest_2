@@ -1,6 +1,6 @@
 package com.example.bankcards.entity;
 
+// Добавлено: Enum для статуса транзакции
 public enum TransactionStatus {
-    SUCCESS,
-    FAILED
+    PENDING, COMPLETED, FAILED
 }

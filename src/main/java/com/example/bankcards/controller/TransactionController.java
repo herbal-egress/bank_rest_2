@@ -29,7 +29,7 @@ public class TransactionController {
     @PostMapping("/transfer")
     public ResponseEntity<TransactionDTO> transfer(@Valid @RequestBody TransactionDTO transactionDTO) {
         logger.info("Получен запрос на перевод: с карты {} на карту {}, сумма: {}",
-                transactionDTO.getFromCardId(), transactionDTO.getToCardId(), transactionDTO.getAmount());
+                transactionDTO.getFromCard(), transactionDTO.getToCard(), transactionDTO.getAmount());
         TransactionDTO result = transactionService.transfer(transactionDTO);
         logger.info("Перевод успешно выполнен: ID транзакции {}, сумма: {}", result.getId(), result.getAmount());
         return ResponseEntity.status(201).body(result);

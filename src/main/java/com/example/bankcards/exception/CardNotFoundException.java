@@ -8,6 +8,7 @@ public class CardNotFoundException extends BankCardsException {
     public CardNotFoundException(Long cardId, Long userId) {
         super("Карта с ID " + cardId + " не найдена для пользователя с ID " + userId);
     }
+
     // Добавлено: Конструктор с сообщением об ошибке
     public CardNotFoundException(String message) {
         super(message);

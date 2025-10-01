@@ -1,14 +1,15 @@
 package com.example.bankcards.service;
 
-import com.example.bankcards.entity.Card;
+import com.example.bankcards.dto.CardDTO;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 
-// добавил: Интерфейс для сервиса операций с картами для пользователя
+// Изменено: Обновлен интерфейс для соответствия эндпоинтам
 public interface UserCardService {
-    // добавил: Методы для операций с картами пользователя
-    Page<Card> getUserCards(Long userId, int page, int size, String sortBy, String sortDir);
-    String requestBlock(Long cardId, Long userId);
-    BigDecimal getBalance(Long cardId, Long userId);
+    // Изменено: Убран userId, фильтрация по status
+    Page<CardDTO> getUserCards(String status, Pageable pageable);
+    String requestBlockCard(Long cardId);
+    BigDecimal getCardBalance(Long cardId);
 }
