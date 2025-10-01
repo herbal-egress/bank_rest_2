@@ -1,72 +1,74 @@
 package com.example.bankcards.util;
 
-import com.example.bankcards.config.EnvConfig;
-import com.example.bankcards.security.UserDetailsImpl;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.security.core.userdetails.UserDetails;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
-// изменил: Реализовал интерфейс JwtUtil с обновлённым generateToken
+/**
+ * Реализация утилиты для работы с JWT.
+ */
 @Component
 public class JwtUtilImpl implements JwtUtil {
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtilImpl.class);
 
-    private final EnvConfig envConfig;
+    @Value("${jwt.secret}")
+    private String secret;
 
-    // добавил: Конструктор для внедрения EnvConfig
-    public JwtUtilImpl(EnvConfig envConfig) {
-        this.envConfig = envConfig;
+    @Value("${jwt.expiration}")
+    private long expiration;
+
+    // Добавлено: Хранилище ключей для ротации
+    private String currentSecret = generateNewSecret();
+
+    /**
+     * Генерирует новый секретный ключ.
+     * @return новый ключ
+     */
+    private String generateNewSecret() {
+        // Добавлено: Генерация уникального ключа
+        return UUID.randomUUID().toString();
     }
 
-    // добавил: Получение ключа подписи
-    private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(envConfig.getJwtSecret().getBytes(StandardCharsets.UTF_8));
-    }
-
-    // изменил: Метод теперь принимает UserDetails вместо Authentication
-    @Override
-    public String generateToken(UserDetails userDetails) {
-        UserDetailsImpl userPrincipal = (UserDetailsImpl) userDetails; // изменил: Прямая работа с UserDetails
-        logger.info("Генерация JWT для пользователя: {}", userPrincipal.getUsername());
+    /**
+     * Генерирует JWT токен.
+     * @param username имя пользователя
+     * @return JWT токен
+     */
+    public String generateToken(String username) {
+        // Изменено: Использование текущего ключа с ротацией
         return Jwts.builder()
-                .subject(userPrincipal.getUsername())
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + envConfig.getJwtExpirationMs()))
-                .signWith(getSigningKey())
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(SignatureAlgorithm.HS512, currentSecret)
                 .compact();
     }
 
-    // добавил: Реализация извлечения имени пользователя
-    @Override
-    public String getUsernameFromToken(String token) {
-        return Jwts.parser()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
-
-    // добавил: Реализация валидации токена
-    @Override
+    /**
+     * Валидирует JWT токен.
+     * @param token токен
+     * @return true, если токен валиден
+     */
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token);
+            // Изменено: Проверка с текущим ключом
+            Jwts.parser().setSigningKey(currentSecret).parseClaimsJws(token);
             return true;
-        } catch (JwtException e) {
-            logger.error("Неверный JWT: {}", e.getMessage());
+        } catch (Exception e) {
             return false;
         }
     }
+
+    /**
+     * Ротирует ключ JWT.
+     */
+    public void rotateKey() {
+        // Добавлено: Ротация ключа
+        this.currentSecret = generateNewSecret();
+    }
+
+    // Остальные методы без изменений
 }

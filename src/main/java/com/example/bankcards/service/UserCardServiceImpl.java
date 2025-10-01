@@ -11,9 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal; // изменил: Добавлен импорт для BigDecimal
+import java.math.BigDecimal;
 
-// изменил: Обновил для работы с BigDecimal
 @Service
 public class UserCardServiceImpl implements UserCardService {
     private static final Logger logger = LoggerFactory.getLogger(UserCardServiceImpl.class);
@@ -21,12 +20,10 @@ public class UserCardServiceImpl implements UserCardService {
     private final CardRepository cardRepository;
 
     @Autowired
-    // добавил: Конструктор для внедрения зависимостей
     public UserCardServiceImpl(CardRepository cardRepository) {
         this.cardRepository = cardRepository;
     }
 
-    // добавил: Реализация получения списка карт пользователя
     @Override
     public Page<Card> getUserCards(Long userId, int page, int size, String sortBy, String sortDir) {
         logger.info("Получение списка карт для пользователя с ID: {}, страница: {}, размер: {}", userId, page, size);
@@ -37,7 +34,6 @@ public class UserCardServiceImpl implements UserCardService {
         return cards;
     }
 
-    // добавил: Реализация запроса на блокировку карты
     @Override
     public String requestBlock(Long cardId, Long userId) {
         logger.info("Запрос на блокировку карты с ID: {} от пользователя с ID: {}", cardId, userId);
@@ -50,7 +46,6 @@ public class UserCardServiceImpl implements UserCardService {
         return "Запрос на блокировку карты с ID " + cardId + " успешно отправлен";
     }
 
-    // изменил: Возвращаем BigDecimal для balance
     @Override
     public BigDecimal getBalance(Long cardId, Long userId) {
         logger.info("Получение баланса карты с ID: {} для пользователя с ID: {}", cardId, userId);

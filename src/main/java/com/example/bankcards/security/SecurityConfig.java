@@ -1,62 +1,44 @@
 package com.example.bankcards.security;
 
-import org.springframework.beans.factory.annotation.Autowired; // добавлено: импорт для аннотации Autowired
-import org.springframework.context.annotation.Bean; // добавлено: импорт для аннотации Bean
-import org.springframework.context.annotation.Configuration; // добавлено: импорт для аннотации Configuration
-import org.springframework.security.authentication.AuthenticationManager; // добавлено: импорт для AuthenticationManager
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider; // добавлено: импорт для DaoAuthenticationProvider
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration; // добавлено: импорт для AuthenticationConfiguration
-import org.springframework.security.config.annotation.web.builders.HttpSecurity; // добавлено: импорт для HttpSecurity
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer; // добавлено: импорт для AbstractHttpConfigurer
-import org.springframework.security.config.http.SessionCreationPolicy; // добавлено: импорт для SessionCreationPolicy
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // добавлено: импорт для BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder; // добавлено: импорт для PasswordEncoder
-import org.springframework.security.web.SecurityFilterChain; // добавлено: импорт для SecurityFilterChain
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // добавлено: импорт для UsernamePasswordAuthenticationFilter
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
-@Configuration // добавлено: аннотация для указания, что это класс конфигурации Spring
+/**
+ * Конфигурация безопасности приложения.
+ */
+@Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsService; // добавлено: зависимость для работы с пользовательскими данными
-    private final JwtAuthenticationFilter jwtAuthenticationFilter; // добавлено: зависимость для фильтра JWT
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Autowired // добавлено: явное внедрение зависимостей для совместимости с Spring Boot 4.0.0-M3
-    public SecurityConfig(UserDetailsServiceImpl userDetailsService, JwtAuthenticationFilter jwtAuthenticationFilter) { // добавлено: конструктор для внедрения зависимостей
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() { // добавлено: бин для хэширования паролей с использованием BCrypt (OWASP: безопасное хэширование)
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() { // изменено: исправление конфигурации DaoAuthenticationProvider для Spring Security 6.3+
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService); // изменено: передача userDetailsService в конструктор
-        authProvider.setPasswordEncoder(passwordEncoder()); // добавлено: установка энкодера паролей
-        return authProvider;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception { // добавлено: бин для менеджера аутентификации
-        return config.getAuthenticationManager(); // добавлено: получение менеджера из конфигурации
-    }
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { // добавлено: конфигурация цепочки фильтров безопасности (Spring Security 6.3+)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // добавлено: отключение CSRF для stateless API (OWASP: CSRF не требуется для JWT)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // добавлено: настройка stateless сессий для JWT
+                // Добавлено: Включение CSRF с использованием Cookie
+                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                // Добавлено: Настройка заголовков безопасности
+                .headers(headers -> headers
+                        .addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy", "default-src 'self'"))
+                        .addHeaderWriter(new StaticHeadersWriter("X-Frame-Options", "DENY"))
+                        .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff")))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // добавлено: доступ к Swagger без авторизации
-                        .requestMatchers("/auth/**").permitAll() // добавлено: доступ к эндпоинтам аутентификации без авторизации
-                        .requestMatchers("/cards/**").hasAnyRole("ADMIN", "USER") // добавлено: доступ к эндпоинтам карт для ролей ADMIN и USER (OWASP: RBAC)
-                        .requestMatchers("/admin/**").hasRole("ADMIN") // добавлено: доступ к админским эндпоинтам только для роли ADMIN
-                        .anyRequest().authenticated() // добавлено: все остальные запросы требуют аутентификации
-                )
-                .authenticationProvider(authenticationProvider()) // добавлено: установка провайдера аутентификации
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // добавлено: добавление JWT фильтра перед стандартным фильтром
-        return http.build(); // добавлено: сборка и возврат цепочки фильтров
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/user/**").hasRole("USER")
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 }
