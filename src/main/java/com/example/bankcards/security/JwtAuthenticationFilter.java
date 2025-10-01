@@ -1,6 +1,7 @@
 package com.example.bankcards.security;
 
 import com.example.bankcards.exception.JwtAuthenticationException;
+import com.example.bankcards.exception.JwtExpiredException;
 import com.example.bankcards.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -39,35 +40,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = null;
         String username = null;
 
-        // Без изменений: Извлечение токена
+        // Изменено: Явная обработка JwtExpiredException
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
             try {
                 username = jwtUtil.getUsernameFromToken(token);
-            } catch (Exception e) {
-                logger.error("Ошибка извлечения имени пользователя из JWT: {}", e.getMessage());
-                // Изменено: Не выбрасываем исключение, логируем и продолжаем цепочку (OWASP: secure error handling)
+            } catch (JwtExpiredException e) {
+                logger.error("Срок действия токена истёк: {}", e.getMessage());
+                throw e; // Добавлено: Передаём JwtExpiredException в GlobalExceptionHandler
+            } catch (JwtAuthenticationException e) {
+                logger.error("Ошибка аутентификации JWT: {}", e.getMessage());
+                throw e; // Добавлено: Передаём JwtAuthenticationException в GlobalExceptionHandler
             }
         }
 
-        // Изменено: Добавлена проверка на null для userDetailsService
+        // Изменено: Явная обработка JwtExpiredException в блоке валидации
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (jwtUtil.validateToken(token)) {
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    logger.info("Установлена аутентификация для пользователя: {}", username);
-                } else {
-                    // Изменено: Логируем и выбрасываем исключение для обработки в GlobalExceptionHandler
+                if (!jwtUtil.validateToken(token)) {
                     logger.error("Недействительный JWT токен для пользователя: {}", username);
                     throw new JwtAuthenticationException("Недействительный JWT токен");
                 }
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.info("Установлена аутентификация для пользователя: {}", username);
+            } catch (JwtExpiredException e) {
+                logger.error("Срок действия токена истёк: {}", e.getMessage());
+                throw e; // Добавлено: Передаём JwtExpiredException в GlobalExceptionHandler
             } catch (JwtAuthenticationException e) {
                 logger.error("Ошибка аутентификации: {}", e.getMessage());
-                throw e; // Изменено: Передаём исключение для обработки в GlobalExceptionHandler
+                throw e; // Без изменений: Передаём JwtAuthenticationException
             }
         }
 
