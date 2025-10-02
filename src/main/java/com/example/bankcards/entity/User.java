@@ -21,6 +21,7 @@ public class User {
     @NotNull
     @Size(min = 8, message = "Пароль должен быть не менее 8 символов")
     @Column(name = "password", nullable = false)
+    @Convert(disableConversion = true)
     private String password;
     @NotNull
     @Email(message = "Некорректный формат email")
