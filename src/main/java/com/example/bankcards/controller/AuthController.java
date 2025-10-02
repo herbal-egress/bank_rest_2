@@ -20,7 +20,7 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
 
-    // изменено: удалена инжекция EncryptionUtil
+    // изменено: удалена инжекция PasswordUtil
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
@@ -32,7 +32,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
         }
         try {
-            // изменено: удалено шифрование пароля через EncryptionUtil
+            // изменено: удалено шифрование пароля через PasswordUtil
             TokenResponseDTO tokenResponse = authService.authenticate(loginRequest);
             return ResponseEntity.ok(tokenResponse);
         } catch (Exception e) {

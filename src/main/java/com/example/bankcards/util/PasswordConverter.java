@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 // Добавлено: Конвертер для хеширования паролей с использованием BCrypt
 @Component
 @Converter
-public class EncryptionConverter implements AttributeConverter<String, String> {
+public class PasswordConverter implements AttributeConverter<String, String> {
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;

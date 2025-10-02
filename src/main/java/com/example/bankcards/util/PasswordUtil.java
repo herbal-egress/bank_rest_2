@@ -2,7 +2,6 @@ package com.example.bankcards.util;
 
 import com.example.bankcards.exception.EncryptionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 // Компонент для хеширования и проверки паролей с использованием BCrypt
 @Component
-public class EncryptionUtil {
+public class PasswordUtil {
 
     @Autowired
     private PasswordEncoder passwordEncoder;

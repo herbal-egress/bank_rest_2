@@ -1,6 +1,6 @@
 package com.example.bankcards.entity;
 
-import com.example.bankcards.util.EncryptionConverter;
+import com.example.bankcards.util.PasswordConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -17,7 +17,6 @@ public class Card {
     @NotNull
     @Size(min = 16, max = 16, message = "Номер карты должен содержать 16 цифр")
     @Column(name = "number", nullable = false)
-    @Convert(converter = EncryptionConverter.class)
     private String number;
     @NotNull
     @Size(max = 50, message = "Имя на карте не должно превышать 50 символов")

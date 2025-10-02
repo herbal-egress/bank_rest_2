@@ -1,6 +1,6 @@
 package com.example.bankcards.security;
 
-import com.example.bankcards.util.EncryptionUtil;
+import com.example.bankcards.util.PasswordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private UserDetailsService userDetailsService;
 
     @Autowired
-    private EncryptionUtil encryptionUtil;
+    private PasswordUtil passwordUtil;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -41,7 +41,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         }
 
         // Добавлено: Логирование проверки пароля
-        boolean passwordMatch = encryptionUtil.checkPassword(password, userDetails.getPassword());
+        boolean passwordMatch = passwordUtil.checkPassword(password, userDetails.getPassword());
         logger.info("Password match for user {}: {}", username, passwordMatch);
 
         if (!passwordMatch) {

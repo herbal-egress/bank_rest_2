@@ -19,7 +19,7 @@ public class EnvConfig {
     private String jwtSecret;
     @Value("${ENCRYPTION_SECRET}")
     private String encryptionSecret;
-    @Value("${jwt.expiration}")
+    @Value("${JWT_ROTATION_INTERVAL}")
     private long jwtExpirationMs;
 
     @PostConstruct
