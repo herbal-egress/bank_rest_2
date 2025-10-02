@@ -24,7 +24,6 @@ public class User {
     @NotNull
     @Size(min = 3, message = "Пароль должен быть не менее 3 символов")
     @Column(name = "password", nullable = false)
-    @Convert(converter = PasswordConverter.class)
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
