@@ -8,11 +8,8 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-// Добавлено: Конфигурация Swagger для документирования API и поддержки JWT (OWASP: безопасная документация)
 @Configuration
 public class SwaggerConfig {
-
-    // Добавлено: Создание OpenAPI с поддержкой JWT и группировкой контроллеров
     @Bean
     public OpenAPI customOpenAPI() {
         return new OpenAPI()

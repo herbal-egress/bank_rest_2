@@ -3,8 +3,8 @@ package com.example.bankcards.service;
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
-import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.exception.AccessDeniedException;
+import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.mapper.CardMapper;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.security.UserDetailsImpl;
@@ -20,11 +20,9 @@ import java.math.BigDecimal;
 @Service
 public class UserCardServiceImpl implements UserCardService {
     private static final Logger logger = LoggerFactory.getLogger(UserCardServiceImpl.class);
-
     private final CardRepository cardRepository;
     private final CardMapper cardMapper;
 
-    // Изменено: Добавлен CardMapper
     public UserCardServiceImpl(CardRepository cardRepository, CardMapper cardMapper) {
         this.cardRepository = cardRepository;
         this.cardMapper = cardMapper;
@@ -32,7 +30,6 @@ public class UserCardServiceImpl implements UserCardService {
 
     @Override
     public Page<CardDTO> getUserCards(String status, Pageable pageable) {
-        // Добавлено: Получение userId из SecurityContext
         Long userId = getCurrentUserId();
         logger.info("Получение карт для пользователя с ID: {}, status: {}, pageable: {}", userId, status, pageable);
         Page<Card> cards;
@@ -71,7 +68,6 @@ public class UserCardServiceImpl implements UserCardService {
         return card.getBalance();
     }
 
-    // Добавлено: Получение userId из SecurityContext
     private Long getCurrentUserId() {
         var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetailsImpl userDetails) {

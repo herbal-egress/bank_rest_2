@@ -1,38 +1,31 @@
 package com.example.bankcards.entity;
 
-// добавленный код: Импорты для JPA, валидации, связи с Role, хеширования пароля.
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Table(name = "users", schema = "bankrest")
 public class User {
-
-    // добавленный код: Поля согласно ТЗ (id, username, password, email) + связь с Role.
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @NotNull
     @Size(min = 3, max = 50, message = "Имя пользователя должно быть от 3 до 50 символов")
     @Column(name = "username", nullable = false, unique = true)
     private String username;
-
     @NotNull
     @Size(min = 8, message = "Пароль должен быть не менее 8 символов")
     @Column(name = "password", nullable = false)
-    private String password; // Хешируется через BCrypt в сервисе.
-
+    private String password;
     @NotNull
     @Email(message = "Некорректный формат email")
     @Column(name = "email", nullable = false, unique = true)
     private String email;
-
-    // добавленный код: Связь @ManyToMany с Role для ролей ADMIN/USER.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",

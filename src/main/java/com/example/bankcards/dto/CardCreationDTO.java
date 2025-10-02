@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-// Добавлено: DTO для создания карты
 public class CardCreationDTO {
     @NotBlank(message = "Имя владельца не может быть пустым")
     @Size(max = 50, message = "Имя владельца не должно превышать 50 символов")

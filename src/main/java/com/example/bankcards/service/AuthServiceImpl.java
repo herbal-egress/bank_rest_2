@@ -18,12 +18,10 @@ import java.util.List;
 @Service
 public class AuthServiceImpl implements AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
-
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
-    // Добавлено: Конструктор с зависимостями
     public AuthServiceImpl(UserRepository userRepository, UserMapper userMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
@@ -36,7 +34,6 @@ public class AuthServiceImpl implements AuthService {
         User user = userMapper.toEntity(userDTO);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setRoles(new HashSet<>());
-        // Изменено: Преобразование String в RoleName
         try {
             user.getRoles().add(new Role(Role.RoleName.valueOf(userDTO.getRole())));
         } catch (IllegalArgumentException e) {
@@ -67,7 +64,6 @@ public class AuthServiceImpl implements AuthService {
         user.setUsername(userDTO.getUsername());
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.getRoles().clear();
-        // Изменено: Преобразование String в RoleName
         try {
             user.getRoles().add(new Role(Role.RoleName.valueOf(userDTO.getRole())));
         } catch (IllegalArgumentException e) {

@@ -25,9 +25,7 @@ import java.math.BigDecimal;
 @PreAuthorize("hasRole('USER')")
 @Tag(name = "Операции с картами. Пользователь", description = "только USER")
 public class UserCardController {
-
     private static final Logger logger = LoggerFactory.getLogger(UserCardController.class);
-
     private final UserCardService userCardService;
 
     public UserCardController(UserCardService userCardService) {

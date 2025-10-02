@@ -10,9 +10,11 @@ spring:
     show-sql: true
   liquibase:
     change-log: classpath:db/migration/changelog-master.yaml
-jwt: # изменил: добавил rotation-interval в существующую секцию
+
+jwt:
   secret: test-secret
   expiration: 3600000
-  rotation-interval: 60000 # добавил: для тестов (1 мин, быстро для проверки)
+  rotation-interval: 60000
+
 server:
   port: 0

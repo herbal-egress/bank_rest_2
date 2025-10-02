@@ -4,16 +4,14 @@ import com.example.bankcards.exception.JwtExpiredException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -21,28 +19,20 @@ import java.security.Key;
 import java.security.SecureRandom;
 import java.util.Date;
 
-// Без изменений: Реализация утилиты для работы с JWT
 @Component
 public class JwtUtilImpl implements JwtUtil {
-
     private static final Logger logger = LoggerFactory.getLogger(JwtUtilImpl.class);
-
     @Value("${jwt.secret}")
     private String secret;
-
     @Value("${jwt.expiration}")
     private long expiration;
-
     @Value("${jwt.rotation-interval}")
     private long rotationInterval;
-
     private Key currentSecret;
 
-    // Без изменений: Конструктор
     public JwtUtilImpl() {
     }
 
-    // Без изменений: Инициализация ключа
     @PostConstruct
     public void init() {
         if (secret == null || secret.trim().isEmpty()) {
@@ -55,7 +45,6 @@ public class JwtUtilImpl implements JwtUtil {
         logger.info("Секретный ключ JWT успешно инициализирован. Длина ключа: {} байт", secret.getBytes(StandardCharsets.UTF_8).length);
     }
 
-    // Без изменений: Генерация нового ключа
     private Key generateNewSecret() {
         logger.info("Генерация нового секретного ключа JWT");
         byte[] keyBytes = new byte[32];
@@ -63,7 +52,6 @@ public class JwtUtilImpl implements JwtUtil {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Без изменений: Периодическая ротация ключа
     @Scheduled(fixedRateString = "${jwt.rotation-interval}")
     public void rotateJwtKey() {
         logger.info("Ротация ключа JWT");
@@ -71,7 +59,6 @@ public class JwtUtilImpl implements JwtUtil {
         logger.info("Ключ JWT успешно обновлён");
     }
 
-    // Без изменений: Генерация токена
     @Override
     public String generateToken(Authentication authentication) {
         String username = authentication.getName();
@@ -84,7 +71,6 @@ public class JwtUtilImpl implements JwtUtil {
                 .compact();
     }
 
-    // Изменено: Явная обработка ExpiredJwtException, логи на русском
     @Override
     public String getUsernameFromToken(String token) {
         try {
@@ -103,7 +89,6 @@ public class JwtUtilImpl implements JwtUtil {
         }
     }
 
-    // Изменено: Явная обработка ExpiredJwtException, логи на русском
     @Override
     public boolean validateToken(String token) {
         try {

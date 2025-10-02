@@ -20,13 +20,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class AdminCardServiceImpl implements AdminCardService {
     private static final Logger logger = LoggerFactory.getLogger(AdminCardServiceImpl.class);
-
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
     private final CardFactory cardFactory;
     private final CardMapper cardMapper;
 
-    // Изменено: Добавлен UserRepository и CardMapper
     public AdminCardServiceImpl(CardRepository cardRepository, UserRepository userRepository,
                                 CardFactory cardFactory, CardMapper cardMapper) {
         this.cardRepository = cardRepository;
@@ -38,17 +36,14 @@ public class AdminCardServiceImpl implements AdminCardService {
     @Override
     public CardDTO createCard(Long userId, CardCreationDTO cardCreationDTO) {
         logger.info("Создание карты для пользователя с ID: {}, имя: {}", userId, cardCreationDTO.getName());
-        // Добавлено: Проверка существования пользователя
         userRepository.findById(userId)
                 .orElseThrow(() -> {
                     logger.error("Пользователь с ID {} не найден", userId);
                     return new UserNotFoundException("Пользователь с ID " + userId + " не найден");
                 });
-        // Добавлено: Создание карты через CardFactory
         CardDTO cardDTO = cardFactory.createCard(cardCreationDTO.getName(), userId);
         CardValidator.validateCard(cardDTO);
         Card card = cardMapper.toEntity(cardDTO);
-        // Добавлено: Установка связи с пользователем
         card.setUser(new com.example.bankcards.entity.User());
         card.getUser().setId(userId);
         Card savedCard = cardRepository.save(card);

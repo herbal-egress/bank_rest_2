@@ -20,15 +20,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-// Изменено: Добавлена аннотация @Tag для группировки в Swagger
 @RestController
 @RequestMapping("/api/admin/cards")
 @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Операции с картами. Администратор", description = "только ADMIN")
 public class AdminCardController {
-
     private static final Logger logger = LoggerFactory.getLogger(AdminCardController.class);
-
     private final AdminCardService adminCardService;
 
     public AdminCardController(AdminCardService adminCardService) {

@@ -1,7 +1,6 @@
-# src/main/resources/application-dev.yml
 spring:
   config:
-    import: optional:file:.env[.properties]  # добавлено: явный импорт для dev профиля (для подстановки ${JWT_SECRET})
+    import: optional:file:.env[.properties]
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
@@ -13,15 +12,19 @@ spring:
     show-sql: true
   liquibase:
     change-log: classpath:db/migration/changelog-master.yaml
-jwt:  # секция остаётся без изменений, но теперь ${JWT_SECRET} подставится
+
+jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
   rotation-interval: ${JWT_ROTATION_INTERVAL:86400000}
-encryption:  # секция остаётся без изменений
+
+encryption:
   secret: ${ENCRYPTION_SECRET}
+
 server:
   port: ${SERVER_PORT}
+
 logging:
   level:
-    org.springframework.boot.context.config: DEBUG  # добавлено: для отладки подстановки ${JWT_SECRET}
-    com.example.bankcards.util: DEBUG  # добавлено: для логов JwtUtilImpl
+    org.springframework.boot.context.config: DEBUG
+    com.example.bankcards.util: DEBUG

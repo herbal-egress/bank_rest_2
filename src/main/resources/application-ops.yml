@@ -10,15 +10,19 @@ spring:
     show-sql: false
   liquibase:
     change-log: classpath:db/migration/changelog-master.yaml
-jwt: # изменил: добавил rotation-interval в существующую секцию
+
+jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
-  rotation-interval: ${JWT_ROTATION_INTERVAL:3600000} # добавил: для ops (1ч по умолчанию, строже)
-encryption: # Шифрование (для разработки).
-  secret: ${ENCRYPTION_SECRET} # Секрет для шифрования (для разработки).
+  rotation-interval: ${JWT_ROTATION_INTERVAL:3600000}
+
+encryption:
+  secret: ${ENCRYPTION_SECRET}
+
 server:
   port: ${SERVER_PORT}
+
 logging:
   level:
     root: WARN
-    com.example.bankcards: INFO # добавил: для отображения логов ротации (AuthServiceImpl) в продакшене
+    com.example.bankcards: INFO

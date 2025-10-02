@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-// изменил: Добавил поле и геттер для jwtExpirationMs
 @Configuration
 @Slf4j
 public class EnvConfig {
@@ -20,12 +19,10 @@ public class EnvConfig {
     private String jwtSecret;
     @Value("${ENCRYPTION_SECRET}")
     private String encryptionSecret;
-    // добавил: Поле для загрузки jwt.expiration
     @Value("${jwt.expiration}")
     private long jwtExpirationMs;
 
     @PostConstruct
-    // изменил: Добавил проверку jwtExpirationMs
     public void init() {
         if (dbUrl == null || dbUrl.isEmpty()) {
             log.error("Отсутствует обязательная переменная окружения: DB_URL");
@@ -47,7 +44,6 @@ public class EnvConfig {
             log.error("Отсутствует обязательная переменная окружения: ENCRYPTION_SECRET");
             throw new EnvLoadException("Отсутствует обязательная переменная: ENCRYPTION_SECRET");
         }
-        // добавил: Проверка jwtExpirationMs
         if (jwtExpirationMs <= 0) {
             log.error("Недопустимое значение переменной окружения: jwt.expiration");
             throw new EnvLoadException("Недопустимое значение переменной: jwt.expiration");
@@ -55,32 +51,26 @@ public class EnvConfig {
         log.info("Переменные окружения из .env загружены успешно.");
     }
 
-    // добавил: Геттер для dbUrl
     public String getDbUrl() {
         return dbUrl;
     }
 
-    // добавил: Геттер для dbUsername
     public String getDbUsername() {
         return dbUsername;
     }
 
-    // добавил: Геттер для dbPassword
     public String getDbPassword() {
         return dbPassword;
     }
 
-    // добавил: Геттер для jwtSecret
     public String getJwtSecret() {
         return jwtSecret;
     }
 
-    // добавил: Геттер для encryptionSecret
     public String getEncryptionSecret() {
         return encryptionSecret;
     }
 
-    // добавил: Геттер для jwtExpirationMs
     public long getJwtExpirationMs() {
         return jwtExpirationMs;
     }

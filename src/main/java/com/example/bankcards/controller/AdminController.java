@@ -20,9 +20,7 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 @Tag(name = "Операции с пользователями", description = "только ADMIN")
 public class AdminController {
-
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
-
     private final AuthService authService;
 
     public AdminController(AuthService authService) {

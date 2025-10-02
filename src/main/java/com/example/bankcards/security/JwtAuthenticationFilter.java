@@ -18,16 +18,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-// Без изменений: Компонент для обработки JWT
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
 
-    // Без изменений: Конструктор для DI
     public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
@@ -39,22 +35,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         String token = null;
         String username = null;
-
-        // Изменено: Явная обработка JwtExpiredException
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
             try {
                 username = jwtUtil.getUsernameFromToken(token);
             } catch (JwtExpiredException e) {
                 logger.error("Срок действия токена истёк: {}", e.getMessage());
-                throw e; // Добавлено: Передаём JwtExpiredException в GlobalExceptionHandler
+                throw e;
             } catch (JwtAuthenticationException e) {
                 logger.error("Ошибка аутентификации JWT: {}", e.getMessage());
-                throw e; // Добавлено: Передаём JwtAuthenticationException в GlobalExceptionHandler
+                throw e;
             }
         }
-
-        // Изменено: Явная обработка JwtExpiredException в блоке валидации
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -69,14 +61,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 logger.info("Установлена аутентификация для пользователя: {}", username);
             } catch (JwtExpiredException e) {
                 logger.error("Срок действия токена истёк: {}", e.getMessage());
-                throw e; // Добавлено: Передаём JwtExpiredException в GlobalExceptionHandler
+                throw e;
             } catch (JwtAuthenticationException e) {
                 logger.error("Ошибка аутентификации: {}", e.getMessage());
-                throw e; // Без изменений: Передаём JwtAuthenticationException
+                throw e;
             }
         }
-
-        // Без изменений: Передача в следующий фильтр
         filterChain.doFilter(request, response);
     }
 }

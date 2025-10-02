@@ -5,9 +5,9 @@ import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.Transaction;
 import com.example.bankcards.entity.TransactionStatus;
+import com.example.bankcards.exception.AccessDeniedException;
 import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.exception.InvalidTransactionException;
-import com.example.bankcards.exception.AccessDeniedException;
 import com.example.bankcards.mapper.TransactionMapper;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransactionRepository;
@@ -23,12 +23,10 @@ import java.time.LocalDateTime;
 @Service
 public class TransactionServiceImpl implements TransactionService {
     private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);
-
     private final CardRepository cardRepository;
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
 
-    // Добавлено: Конструктор с зависимостями
     public TransactionServiceImpl(CardRepository cardRepository, TransactionRepository transactionRepository,
                                   TransactionMapper transactionMapper) {
         this.cardRepository = cardRepository;
@@ -43,8 +41,6 @@ public class TransactionServiceImpl implements TransactionService {
         logger.info("Выполнение перевода с карты {} на карту {} на сумму {} для пользователя с ID: {}",
                 transactionDTO.getFromCard().getId(), transactionDTO.getToCard().getId(),
                 transactionDTO.getAmount(), userId);
-
-        // Добавлено: Проверка принадлежности карт пользователю
         Card fromCard = cardRepository.findByIdAndUserId(transactionDTO.getFromCard().getId(), userId)
                 .orElseThrow(() -> {
                     logger.error("Карта отправителя с ID {} не найдена для пользователя с ID: {}",
@@ -57,8 +53,6 @@ public class TransactionServiceImpl implements TransactionService {
                             transactionDTO.getToCard().getId(), userId);
                     return new CardNotFoundException("Карта получателя с ID " + transactionDTO.getToCard().getId() + " не найдена");
                 });
-
-        // Добавлено: Валидация транзакции
         if (fromCard.getBalance().compareTo(transactionDTO.getAmount()) < 0) {
             logger.error("Недостаточно средств на карте с ID: {}", fromCard.getId());
             throw new InvalidTransactionException("Недостаточно средств на карте с ID " + fromCard.getId());
@@ -67,14 +61,10 @@ public class TransactionServiceImpl implements TransactionService {
             logger.error("Одна из карт не активна: fromCardId={}, toCardId={}", fromCard.getId(), toCard.getId());
             throw new InvalidTransactionException("Одна из карт не активна");
         }
-
-        // Добавлено: Выполнение перевода
         fromCard.setBalance(fromCard.getBalance().subtract(transactionDTO.getAmount()));
         toCard.setBalance(toCard.getBalance().add(transactionDTO.getAmount()));
         cardRepository.save(fromCard);
         cardRepository.save(toCard);
-
-        // Добавлено: Создание транзакции
         Transaction transaction = transactionMapper.toEntity(transactionDTO);
         transaction.setTimestamp(LocalDateTime.now());
         transaction.setStatus(TransactionStatus.COMPLETED);
@@ -83,7 +73,6 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionMapper.toDTO(savedTransaction);
     }
 
-    // Добавлено: Получение userId из SecurityContext
     private Long getCurrentUserId() {
         var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (principal instanceof UserDetailsImpl userDetails) {

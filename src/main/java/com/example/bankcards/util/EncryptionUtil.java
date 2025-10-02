@@ -10,17 +10,16 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+
 @Component
-// изменил: Используется ENCRYPTION_SECRET вместо JWT_SECRET для шифрования
 public class EncryptionUtil {
     private static final Logger logger = LoggerFactory.getLogger(EncryptionUtil.class);
     private static final String ALGORITHM = "AES";
     private final SecretKeySpec secretKey;
 
-    // изменил: Используется getEncryptionSecret() вместо getJwtSecret()
     public EncryptionUtil(EnvConfig envConfig) {
         try {
-            String key = envConfig.getEncryptionSecret(); // изменил: Получение ENCRYPTION_SECRET
+            String key = envConfig.getEncryptionSecret();
             this.secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), ALGORITHM);
         } catch (Exception e) {
             logger.error("Ошибка инициализации ключа шифрования: {}", e.getMessage());
@@ -28,7 +27,6 @@ public class EncryptionUtil {
         }
     }
 
-    // добавил: Шифрование строки
     public String encrypt(String data) {
         try {
             Cipher cipher = Cipher.getInstance(ALGORITHM);
@@ -43,7 +41,6 @@ public class EncryptionUtil {
         }
     }
 
-    // добавил: Дешифрование строки
     public String decrypt(String encryptedData) {
         try {
             Cipher cipher = Cipher.getInstance(ALGORITHM);

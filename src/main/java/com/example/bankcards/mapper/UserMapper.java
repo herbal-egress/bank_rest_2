@@ -6,7 +6,6 @@ import com.example.bankcards.entity.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-// Добавлено: MapStruct маппер для пользователя
 @Mapper(componentModel = "spring")
 public interface UserMapper {
     @Mapping(target = "roles", ignore = true)
