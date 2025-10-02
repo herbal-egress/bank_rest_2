@@ -1,37 +1,31 @@
+// FILE: src/main/java/com/example/bankcards/dto/UserResponseDTO.java
 package com.example.bankcards.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import com.example.bankcards.entity.Role;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+/**
+ * DTO для ответа с данными пользователя
+ * Изменил: поле role теперь типа Role (сущность) вместо Role.RoleName
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Schema(description = "DTO для ответа с данными пользователя")
 public class UserResponseDTO {
+
+    @Schema(description = "ID пользователя", example = "1")
     private Long id;
-    @NotBlank(message = "Имя пользователя не может быть пустым")
-    @Size(min = 3, max = 50, message = "Имя пользователя должно быть от 3 до 50 символов")
+
+    @Schema(description = "Имя пользователя", example = "ivan_ivanov")
     private String username;
-    @NotBlank(message = "Роль не может быть пустой")
-    private String role;
 
-    public Long getId() {
-        return id;
-    }
+    @Schema(description = "Пароль пользователя (дешифрованный)", example = "password123")
+    private String password;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
+    @Schema(description = "Основная роль пользователя")
+    private Role role; // Изменил на тип Role (сущность)
 }

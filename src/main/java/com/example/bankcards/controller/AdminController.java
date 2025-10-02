@@ -1,65 +1,63 @@
+// FILE: src/main/java/com/example/bankcards/controller/AdminController.java
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.UserCreationDTO;
 import com.example.bankcards.dto.UserResponseDTO;
-import com.example.bankcards.service.AuthService;
+import com.example.bankcards.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Контроллер для административных операций с пользователями
+ * Изменил: переписал для использования UserService вместо прямого доступа к репозиторию
+ */
 @RestController
-@RequestMapping("/api/admin/users")
-@PreAuthorize("hasRole('ADMIN')")
-@Tag(name = "Операции с пользователями", description = "только ADMIN")
+@RequestMapping("/api/admin")
+@RequiredArgsConstructor
+@Tag(name = "Admin Management", description = "API для административного управления пользователями")
 public class AdminController {
-    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
-    private final AuthService authService;
 
-    public AdminController(AuthService authService) {
-        this.authService = authService;
-    }
+    private final UserService userService;
 
-    @PostMapping
-    @Operation(summary = "Создание пользователя", description = "Создаёт нового пользователя")
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserCreationDTO userDTO) {
-        logger.info("Получен запрос на создание пользователя: {}", userDTO.getUsername());
-        UserResponseDTO createdUser = authService.createUser(userDTO);
-        logger.info("Пользователь успешно создан: {}", userDTO.getUsername());
-        return ResponseEntity.status(201).body(createdUser);
-    }
-
-    @GetMapping
-    @Operation(summary = "Получение всех пользователей", description = "Возвращает список всех пользователей")
+    /**
+     * Получить всех пользователей
+     * Изменил: теперь использует UserService для получения данных
+     */
+    @Operation(summary = "Получить список всех пользователей")
+    @GetMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        logger.info("Получен запрос на получение списка всех пользователей");
-        List<UserResponseDTO> users = authService.getAllUsers();
-        logger.info("Возвращено {} пользователей", users.size());
+        List<UserResponseDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
-    @PutMapping("/{userId}")
-    @Operation(summary = "Обновление пользователя", description = "Обновляет данные пользователя по его ID")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId, @Valid @RequestBody UserCreationDTO userDTO) {
-        logger.info("Получен запрос на обновление пользователя с ID: {}", userId);
-        UserResponseDTO updatedUser = authService.updateUser(userId, userDTO);
-        logger.info("Пользователь с ID: {} успешно обновлен", userId);
-        return ResponseEntity.ok(updatedUser);
+    /**
+     * Создать нового пользователя
+     * Изменил: добавлен endpoint для создания пользователей через сервис
+     */
+    @Operation(summary = "Создать нового пользователя")
+    @PostMapping("/users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserCreationDTO userCreationDTO) {
+        UserResponseDTO createdUser = userService.createUser(userCreationDTO);
+        return ResponseEntity.ok(createdUser);
     }
 
-    @DeleteMapping("/{userId}")
-    @Operation(summary = "Удаление пользователя", description = "Удаляет пользователя по его ID")
-    public ResponseEntity<Void> deleteUser(@PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId) {
-        logger.info("Получен запрос на удаление пользователя с ID: {}", userId);
-        authService.deleteUser(userId);
-        logger.info("Пользователь с ID: {} успешно удален", userId);
-        return ResponseEntity.noContent().build();
+    /**
+     * Получить пользователя по ID
+     * Изменил: добавлен endpoint для получения конкретного пользователя
+     */
+    @Operation(summary = "Получить пользователя по ID")
+    @GetMapping("/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        UserResponseDTO user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
     }
 }

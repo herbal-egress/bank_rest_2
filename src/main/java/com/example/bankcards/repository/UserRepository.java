@@ -1,3 +1,4 @@
+// FILE: src/main/java/com/example/bankcards/repository/UserRepository.java
 package com.example.bankcards.repository;
 
 import com.example.bankcards.entity.User;
@@ -9,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
+    boolean existsByUsername(String username); // Добавьте этот метод
 }
