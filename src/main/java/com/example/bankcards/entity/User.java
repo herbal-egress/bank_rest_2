@@ -10,13 +10,16 @@ import java.util.Set;
 
 @Entity
 @Table(name = "users", schema = "bankrest")
+
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Convert(disableConversion = true)
     private Long id;
     @NotNull
     @Size(min = 3, max = 50, message = "Имя пользователя должно быть от 3 до 50 символов")
     @Column(name = "username", nullable = false, unique = true)
+    @Convert(disableConversion = true)
     private String username;
     @NotNull
     @Size(min = 8, message = "Пароль должен быть не менее 8 символов")
@@ -26,6 +29,7 @@ public class User {
     @NotNull
     @Email(message = "Некорректный формат email")
     @Column(name = "email", nullable = false, unique = true)
+    @Convert(disableConversion = true)
     private String email;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -34,6 +38,7 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @Convert(disableConversion = true)
     private Set<Role> roles = new HashSet<>();
 
     public User() {
