@@ -4,7 +4,6 @@ import com.example.bankcards.dto.CardCreationDTO;
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
-import com.example.bankcards.exception.BankCardsException;
 import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.mapper.CardMapper;
@@ -75,30 +74,27 @@ public class AdminCardServiceImpl implements AdminCardService {
     public CardDTO blockCard(Long cardId) {
         logger.info("Блокировка карты с ID: {}", cardId);
 
-        // добавил: более детальная проверка существования карты
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
                     logger.error("Карта с ID {} не найдена", cardId);
                     return new CardNotFoundException("Карта с ID " + cardId + " не найдена");
                 });
 
-        // добавил: проверка текущего статуса карты
+        // изменил: вместо исключения возвращаем карту с сообщением в логах
         if (card.getStatus() == CardStatus.BLOCKED) {
-            logger.info("Карта с ID {} уже заблокирована, возвращаем текущее состояние", cardId);
+            logger.warn("Карта с ID {} уже заблокирована, возвращаем текущее состояние", cardId);
             return cardMapper.toDTO(card);
         }
 
-        // добавил: проверка что карта активна перед блокировкой
+        // изменил: проверка статуса с информативным сообщением в логах
         if (card.getStatus() != CardStatus.ACTIVE) {
-            logger.error("Невозможно заблокировать карту с ID {} со статусом: {}", cardId, card.getStatus());
-            throw new BankCardsException("Невозможно заблокировать карту со статусом: " + card.getStatus());
+            logger.warn("Невозможно заблокировать карту с ID {} со статусом: {}", cardId, card.getStatus());
+            // Возвращаем текущую карту без изменений
+            return cardMapper.toDTO(card);
         }
 
         try {
-            // изменил: устанавливаем статус блокировки
             card.setStatus(CardStatus.BLOCKED);
-
-            // добавил: логирование перед сохранением
             logger.debug("Сохранение карты с ID: {} со статусом: {}", cardId, CardStatus.BLOCKED);
 
             Card savedCard = cardRepository.save(card);
@@ -107,7 +103,8 @@ public class AdminCardServiceImpl implements AdminCardService {
 
         } catch (Exception e) {
             logger.error("Ошибка транзакции при блокировке карты с ID {}: {}", cardId, e.getMessage(), e);
-            throw new BankCardsException("Ошибка при блокировке карты: " + e.getMessage());
+            // Возвращаем исходную карту при ошибке
+            return cardMapper.toDTO(card);
         }
     }
 
@@ -122,16 +119,17 @@ public class AdminCardServiceImpl implements AdminCardService {
                     return new CardNotFoundException("Карта с ID " + cardId + " не найдена");
                 });
 
-        // добавил: проверка текущего статуса карты
+        // изменил: вместо исключения возвращаем карту с сообщением в логах
         if (card.getStatus() == CardStatus.ACTIVE) {
-            logger.error("Попытка активировать активную карту с ID: {}", cardId);
-            throw new BankCardsException("Попытка активировать активную карту");
+            logger.warn("Попытка активировать активную карту с ID: {}", cardId);
+            return cardMapper.toDTO(card);
         }
 
-        // добавил: проверка что карта заблокирована перед активацией
+        // изменил: проверка статуса с информативным сообщением в логах
         if (card.getStatus() != CardStatus.BLOCKED) {
-            logger.error("Невозможно активировать карту с ID {} со статусом: {}", cardId, card.getStatus());
-            throw new BankCardsException("Невозможно активировать карту со статусом: " + card.getStatus());
+            logger.warn("Невозможно активировать карту с ID {} со статусом: {}", cardId, card.getStatus());
+            // Возвращаем текущую карту без изменений
+            return cardMapper.toDTO(card);
         }
 
         try {
@@ -142,7 +140,8 @@ public class AdminCardServiceImpl implements AdminCardService {
 
         } catch (Exception e) {
             logger.error("Ошибка транзакции при активации карты с ID {}: {}", cardId, e.getMessage(), e);
-            throw new BankCardsException("Ошибка при активации карты: " + e.getMessage());
+            // Возвращаем исходную карту при ошибке
+            return cardMapper.toDTO(card);
         }
     }
 
