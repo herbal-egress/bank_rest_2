@@ -1,5 +1,6 @@
 package com.example.bankcards.entity;
 
+import com.example.bankcards.util.CardDataConverter;
 import com.example.bankcards.util.PasswordConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+
 @Entity
 @Table(name = "cards", schema = "bankrest")
 public class Card {
@@ -17,7 +19,6 @@ public class Card {
     @NotNull
     @Size(min = 16, max = 16, message = "Номер карты должен содержать 16 цифр")
     @Column(name = "number", nullable = false)
-    @Convert(converter = PasswordConverter.class) // добавил: шифрование номера карты
     private String number;
 
     @NotNull
@@ -44,7 +45,7 @@ public class Card {
     @Size(min = 3, max = 3, message = "CVV должен содержать 3 цифры")
     @Pattern(regexp = "^\\d{3}$", message = "CVV должен содержать только 3 цифры")
     @Column(name = "cvv", nullable = false)
-    @Convert(converter = PasswordConverter.class) // добавил: шифрование CVV
+    @Convert(converter = CardDataConverter.class) // изменил: используем CardDataConverter
     private String cvv;
 
     @NotNull

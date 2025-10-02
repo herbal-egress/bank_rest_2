@@ -2,7 +2,7 @@
 
 -- changeset author:001_init_schema id:1
 -- precondition-onFail:CONTINUE
--- precondition-sqlCheck expectedResult:0 SELECT COUNT(*) FROM information_schema.tables WHERE table_schema =   AND table_name = 'users'
+-- precondition-sqlCheck expectedResult:0 SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'bankrest' AND table_name = 'users'
 
 CREATE SCHEMA IF NOT EXISTS bankrest;
 

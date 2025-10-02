@@ -17,7 +17,7 @@ jwt:
   rotation-interval: ${JWT_ROTATION_INTERVAL:3600000}
 
 encryption:
-  secret: ${ENCRYPTION_SECRET}
+  secret-key: ${ENCRYPTION_SECRET}
 
 server:
   port: ${SERVER_PORT}
