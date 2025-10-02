@@ -4,6 +4,7 @@ import com.example.bankcards.dto.CardCreationDTO;
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
+import com.example.bankcards.exception.BankCardsException;
 import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.mapper.CardMapper;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AdminCardServiceImpl implements AdminCardService {
@@ -69,17 +71,44 @@ public class AdminCardServiceImpl implements AdminCardService {
     }
 
     @Override
+    @Transactional
     public CardDTO blockCard(Long cardId) {
         logger.info("Блокировка карты с ID: {}", cardId);
+
+        // добавил: более детальная проверка существования карты
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
                     logger.error("Карта с ID {} не найдена", cardId);
                     return new CardNotFoundException("Карта с ID " + cardId + " не найдена");
                 });
-        card.setStatus(CardStatus.BLOCKED);
-        Card savedCard = cardRepository.save(card);
-        logger.info("Карта с ID {} успешно заблокирована", cardId);
-        return cardMapper.toDTO(savedCard);
+
+        // добавил: проверка текущего статуса карты
+        if (card.getStatus() == CardStatus.BLOCKED) {
+            logger.info("Карта с ID {} уже заблокирована, возвращаем текущее состояние", cardId);
+            return cardMapper.toDTO(card);
+        }
+
+        // добавил: проверка что карта активна перед блокировкой
+        if (card.getStatus() != CardStatus.ACTIVE) {
+            logger.error("Невозможно заблокировать карту с ID {} со статусом: {}", cardId, card.getStatus());
+            throw new BankCardsException("Невозможно заблокировать карту со статусом: " + card.getStatus());
+        }
+
+        try {
+            // изменил: устанавливаем статус блокировки
+            card.setStatus(CardStatus.BLOCKED);
+
+            // добавил: логирование перед сохранением
+            logger.debug("Сохранение карты с ID: {} со статусом: {}", cardId, CardStatus.BLOCKED);
+
+            Card savedCard = cardRepository.save(card);
+            logger.info("Карта с ID {} успешно заблокирована", cardId);
+            return cardMapper.toDTO(savedCard);
+
+        } catch (Exception e) {
+            logger.error("Ошибка транзакции при блокировке карты с ID {}: {}", cardId, e.getMessage(), e);
+            throw new BankCardsException("Ошибка при блокировке карты: " + e.getMessage());
+        }
     }
 
     @Override
