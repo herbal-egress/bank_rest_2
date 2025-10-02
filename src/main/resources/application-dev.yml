@@ -11,7 +11,7 @@ spring:
       ddl-auto: none
     show-sql: true
   liquibase:
-    change-log: classpath:db/migration/changelog-master.yaml
+    change-log: classpath:db/migration/changelog-master.yml
 
 jwt:
   secret: ${JWT_SECRET}

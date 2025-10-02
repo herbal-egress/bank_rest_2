@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: classpath:db/migration/001_init_schema.sql
+  - include:
+      file: classpath:db/migration/002_init_data.sql
