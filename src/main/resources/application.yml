@@ -22,7 +22,6 @@ spring:
           paths-to-match: /api/admin/**
         - group: user
           paths-to-match: /api/user/**
-
 logging:
   level:
     com.example.bankcards: INFO

@@ -1,37 +1,35 @@
-services:
-  tomcat:
-    image: tomcat:10.0-jdk17
-    container_name: bank-tomcat
-    ports:
-      - "8091:8080"
-    volumes:
-      - ./target/bankcards-0.0.1-SNAPSHOT.war:/usr/local/tomcat/webapps/ROOT.war
-    depends_on:
-      - db-dev
-    environment:
-      SPRING_PROFILES_ACTIVE: dev
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bankrest
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-    networks:
-      - bank_network
-
-  db-dev:
-    image: postgres:17-alpine
-    container_name: bank-db-dev
-    environment:
-      POSTGRES_DB: bankrest
-      POSTGRES_USER: ${DB_USERNAME}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "5433:5432"
-    volumes:
-      - db-dev-data:/var/lib/postgresql/data
-    networks:
-      - bank_network
-
-volumes:
-  db-dev-data:
-
-networks:
-  bank_network:
+#services:
+#  tomcat:
+#    image: tomcat:10.0-jdk17
+#    container_name: bank-tomcat
+#    ports:
+#      - "8091:8080"
+#    volumes:
+#      - ./target/bankcards-0.0.1-SNAPSHOT.war:/usr/local/tomcat/webapps/ROOT.war
+#    depends_on:
+#      - db-dev
+#    environment:
+#      SPRING_PROFILES_ACTIVE: dev
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/bankrest
+#      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+#      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+#    networks:
+#      - bank_network
+#
+#  db-dev:
+#    image: postgres:17-alpine
+#    container_name: bank-db-dev
+#    environment:
+#      POSTGRES_DB: bankrest
+#      POSTGRES_USER: ${DB_USERNAME}
+#      POSTGRES_PASSWORD: ${DB_PASSWORD}
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - db-dev-data:/var/lib/postgresql/data
+#    networks:
+#      - bank_network
+#volumes:
+#  db-dev-data:
+#networks:
+#  bank_network:

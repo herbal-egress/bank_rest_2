@@ -10,7 +10,7 @@ spring:
     show-sql: true
   liquibase:
     change-log: classpath:db/migration/changelog-test.yml
-
+    enabled: false
 jwt:
   secret: test-secret
   expiration: 3600000
