@@ -29,7 +29,6 @@ public class AuthServiceImpl implements AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final UserRepository userRepository;
     private final UserDetailsService userDetailsService;
-    UserDetails userDetails;
     private final JwtUtil jwtUtil;
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
@@ -46,16 +45,24 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponseDTO authenticate(LoginRequestDTO loginRequest) {
-        // добавлено: аутентификация через AuthenticationManager
+        logger.info("Аутентификация пользователя: {}", loginRequest.getUsername());
+
+        // изменил: правильная аутентификация через AuthenticationManager
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
                         loginRequest.getPassword()
                 )
         );
+
+        // добавил: получение UserDetails из успешной аутентификации
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtUtil.generateToken(userDetails);
+
+        logger.info("Аутентификация успешна для пользователя: {}, токен сгенерирован", loginRequest.getUsername());
         return new TokenResponseDTO(token);
     }
+
     @Override
     public UserResponseDTO createUser(UserCreationDTO userDTO) {
         logger.info("Создание пользователя: {}", userDTO.getUsername());
