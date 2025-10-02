@@ -2,42 +2,41 @@ package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.LoginRequestDTO;
 import com.example.bankcards.dto.TokenResponseDTO;
-import com.example.bankcards.util.JwtUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import com.example.bankcards.service.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+
+import jakarta.validation.Valid;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Авторизация", description = "ввод логина и пароля, генерация токена")
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
+    private final AuthService authService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
-        this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
+    // изменено: удалена инжекция EncryptionUtil
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
     @PostMapping("/login")
-    @Operation(summary = "Авторизация пользователя", description = "Генерирует JWT-токен для пользователя")
-    public ResponseEntity<TokenResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequest, BindingResult bindingResult) {
         logger.info("Получен запрос на авторизацию пользователя: {}", loginRequest.getUsername());
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-        String token = jwtUtil.generateToken(authentication);
-        logger.info("Токен успешно сгенерирован для пользователя: {}", loginRequest.getUsername());
-        return ResponseEntity.ok(new TokenResponseDTO(token));
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
+        }
+        try {
+            // изменено: удалено шифрование пароля через EncryptionUtil
+            TokenResponseDTO tokenResponse = authService.authenticate(loginRequest);
+            return ResponseEntity.ok(tokenResponse);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("ошибка", "Неверное имя пользователя или пароль"));
+        }
     }
 }
