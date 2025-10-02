@@ -1,108 +1,92 @@
 package com.example.bankcards.util;
 
-import com.example.bankcards.exception.JwtExpiredException;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.security.SecureRandom;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+// Реализация JWT утилиты (SOLID: Single Responsibility)
 @Component
 public class JwtUtilImpl implements JwtUtil {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtilImpl.class);
-    @Value("${jwt.secret}")
-    private String secret;
-    @Value("${jwt.expiration}")
-    private long expiration;
-    @Value("${jwt.rotation-interval}")
-    private long rotationInterval;
-    private Key currentSecret;
+    private static final long JWT_EXPIRATION = 86400000;
+    private Key secretKey;
 
     public JwtUtilImpl() {
+        rotateKey();
     }
 
-    @PostConstruct
-    public void init() {
-        if (secret == null || secret.trim().isEmpty()) {
-            throw new IllegalStateException("JWT secret must not be null or empty. Check 'jwt.secret' in application properties or .env (JWT_SECRET).");
-        }
-        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
-            throw new IllegalStateException("JWT secret must be at least 32 bytes (256 bits) for HmacSHA256. Current length: " + secret.getBytes(StandardCharsets.UTF_8).length);
-        }
-        this.currentSecret = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        logger.info("Секретный ключ JWT успешно инициализирован. Длина ключа: {} байт", secret.getBytes(StandardCharsets.UTF_8).length);
-    }
-
-    private Key generateNewSecret() {
-        logger.info("Генерация нового секретного ключа JWT");
-        byte[] keyBytes = new byte[32];
-        new SecureRandom().nextBytes(keyBytes);
-        return Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    @Scheduled(fixedRateString = "${jwt.rotation-interval}")
-    public void rotateJwtKey() {
+    @Scheduled(fixedRate = 86400000)
+    public void rotateKey() {
         logger.info("Ротация ключа JWT");
-        this.currentSecret = generateNewSecret();
+        this.secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS256); // добавил: Безопасный ключ HMAC-SHA256
         logger.info("Ключ JWT успешно обновлён");
     }
 
     @Override
-    public String generateToken(Authentication authentication) {
-        String username = authentication.getName();
-        logger.info("Генерация токена для пользователя: {}", username);
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("sub", userDetails.getUsername());
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        claims.put("roles", roles); // добавил: Роли для Spring Security hasRole
+        logger.info("Генерация токена для пользователя: {}", userDetails.getUsername());
+
         return Jwts.builder()
-                .setSubject(username)
+                .setClaims(claims)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(currentSecret)
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
+                .signWith(secretKey, SignatureAlgorithm.HS256) // изменил: Явное указание алгоритма
                 .compact();
     }
 
     @Override
-    public String getUsernameFromToken(String token) {
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith((SecretKey) currentSecret)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-            return claims.getSubject();
-        } catch (ExpiredJwtException e) {
-            logger.error("Срок действия токена истёк: {}", e.getMessage());
-            throw new JwtExpiredException("Срок действия токена истёк", e);
-        } catch (Exception e) {
-            logger.error("Ошибка извлечения имени пользователя из токена: {}", e.getMessage());
-            return null;
-        }
+    public Boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUsername(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
     @Override
-    public boolean validateToken(String token) {
-        try {
-            Jwts.parser()
-                    .verifyWith((SecretKey) currentSecret)
-                    .build()
-                    .parseSignedClaims(token);
-            return true;
-        } catch (ExpiredJwtException e) {
-            logger.error("Срок действия токена истёк: {}", e.getMessage());
-            throw new JwtExpiredException("Срок действия токена истёк", e);
-        } catch (Exception e) {
-            logger.error("Ошибка валидации токена: {}", e.getMessage());
-            return false;
-        }
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    @Override
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith((SecretKey) secretKey)  // добавил: правильное указание ключа
+                .build()
+                .parseSignedClaims(token)  // добавил: парсинг подписанных claims
+                .getPayload();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 }

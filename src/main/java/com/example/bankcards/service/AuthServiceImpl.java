@@ -29,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final UserRepository userRepository;
     private final UserDetailsService userDetailsService;
+    UserDetails userDetails;
     private final JwtUtil jwtUtil;
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
@@ -52,7 +53,7 @@ public class AuthServiceImpl implements AuthService {
                         loginRequest.getPassword()
                 )
         );
-        String token = jwtUtil.generateToken(authentication);
+        String token = jwtUtil.generateToken(userDetails);
         return new TokenResponseDTO(token);
     }
     @Override

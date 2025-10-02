@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             token = header.substring(7);
             try {
-                username = jwtUtil.getUsernameFromToken(token);
+                username = jwtUtil.extractUsername(token);
             } catch (JwtExpiredException e) {
                 logger.error("Срок действия токена истёк: {}", e.getMessage());
                 throw e;
@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (!jwtUtil.validateToken(token)) {
+                if (!jwtUtil.validateToken(token, userDetails)) {
                     logger.error("Недействительный JWT токен для пользователя: {}", username);
                     throw new JwtAuthenticationException("Недействительный JWT токен");
                 }

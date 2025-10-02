@@ -1,11 +1,13 @@
 package com.example.bankcards.util;
 
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Date;
+
+// Интерфейс для работы с JWT (SOLID: Interface Segregation)
 public interface JwtUtil {
-    String generateToken(Authentication authentication);
-
-    String getUsernameFromToken(String token);
-
-    boolean validateToken(String token);
+    String generateToken(UserDetails userDetails);
+    Boolean validateToken(String token, UserDetails userDetails);
+    String extractUsername(String token);
+    Date extractExpiration(String token);
 }
