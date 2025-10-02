@@ -29,6 +29,12 @@ VALUES (1, 1),
        (4, 2);
 
 -- changeset author:002_init_data id:6
+-- Добавлено: обновление последовательностей после вставки данных с явными ID
+SELECT setval('bankrest.users_id_seq', COALESCE((SELECT MAX(id) FROM bankrest.users), 1));
+SELECT setval('bankrest.roles_id_seq', COALESCE((SELECT MAX(id) FROM bankrest.roles), 1));
+SELECT setval('bankrest.cards_id_seq', COALESCE((SELECT MAX(id) FROM bankrest.cards), 1));
+
+-- changeset author:002_init_data id:7
 INSERT INTO bankrest.cards (id, number, name, expiration, status, balance, cvv, user_id)
 VALUES (1, 'ENCRYPTED_4111111111111111', 'Admin Card', '12-27', 'ACTIVE', 10000.00, '123', 1),
        (2, 'ENCRYPTED_4222222222222222', 'User Card 1', '11-26', 'ACTIVE', 5000.00, '456', 2),
@@ -36,7 +42,7 @@ VALUES (1, 'ENCRYPTED_4111111111111111', 'Admin Card', '12-27', 'ACTIVE', 10000.
        (4, 'ENCRYPTED_4444444444444444', 'Test1 Card', '09-28', 'ACTIVE', 2000.00, '321', 3),
        (5, 'ENCRYPTED_4555555555555555', 'Test2 Card', '08-29', 'EXPIRED', 0.00, '654', 4);
 
--- changeset author:002_init_data id:7
+-- changeset author:002_init_data id:8
 INSERT INTO bankrest.cards (id, number, name, expiration, status, balance, cvv, user_id)
 VALUES (26, 'ENCRYPTED_4666666666666626', 'User Premium Gold', '12-27', 'ACTIVE', 12000.00, '126', 2),
        (27, 'ENCRYPTED_4666666666666627', 'User Travel Card', '11-28', 'ACTIVE', 8000.50, '227', 2),
@@ -47,7 +53,7 @@ VALUES (26, 'ENCRYPTED_4666666666666626', 'User Premium Gold', '12-27', 'ACTIVE'
        (32, 'ENCRYPTED_4666666666666632', 'User Family', '06-33', 'ACTIVE', 15000.25, '732', 2),
        (33, 'ENCRYPTED_4666666666666633', 'User Investment', '05-34', 'ACTIVE', 30000.00, '833', 2);
 
--- changeset author:002_init_data id:8
+-- changeset author:002_init_data id:9
 INSERT INTO bankrest.cards (id, number, name, expiration, status, balance, cvv, user_id)
 VALUES (34, 'ENCRYPTED_4777777777777734', 'Test1 Platinum', '12-27', 'ACTIVE', 18000.00, '134', 3),
        (35, 'ENCRYPTED_4777777777777735', 'Test1 Debit Card', '11-28', 'ACTIVE', 7000.50, '235', 3),
@@ -57,7 +63,7 @@ VALUES (34, 'ENCRYPTED_4777777777777734', 'Test1 Platinum', '12-27', 'ACTIVE', 1
        (39, 'ENCRYPTED_4777777777777739', 'Test1 Old Expired', '07-32', 'EXPIRED', 50.00, '639', 3),
        (40, 'ENCRYPTED_4777777777777740', 'Test1 Main Account', '06-33', 'ACTIVE', 22000.25, '740', 3);
 
--- changeset author:002_init_data id:9
+-- changeset author:002_init_data id:10
 INSERT INTO bankrest.cards (id, number, name, expiration, status, balance, cvv, user_id)
 VALUES (41, '4888888888888841', 'Test2 Gold Premium', '12-27', 'ACTIVE', 16000.00, '141', 4),
        (42, '4888888888888842', 'Test2 Travel Card', '11-28', 'ACTIVE', 9000.50, '242', 4),
@@ -67,3 +73,7 @@ VALUES (41, '4888888888888841', 'Test2 Gold Premium', '12-27', 'ACTIVE', 16000.0
        (46, '4888888888888846', 'Test2 Expired Card', '07-32', 'EXPIRED', 75.00, '646', 4),
        (47, '4888888888888847', 'Test2 Family Card', '06-33', 'ACTIVE', 14000.25, '747', 4),
        (48, '4888888888888848', 'Test2 Investment Card', '05-34', 'ACTIVE', 32000.00, '848', 4);
+
+-- changeset author:002_init_data id:11
+-- Добавлено: финальное обновление последовательности карт после всех вставок
+SELECT setval('bankrest.cards_id_seq', COALESCE((SELECT MAX(id) FROM bankrest.cards), 1));

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 /**
  * Сервис для управления пользователями
- * Изменил: добавлена работа с RoleRepository для получения ролей из базы
+ * Изменил: убрана дешифровка паролей при возврате пользователей
  */
 @Service
 @RequiredArgsConstructor
@@ -34,11 +34,12 @@ public class UserService {
 
     /**
      * Получить всех пользователей
+     * Изменил: убрана дешифровка паролей - хеши не должны раскрываться
      */
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(this::convertToResponseDTO)
+                .map(userMapper::toResponseDTO) // Изменил: используем маппер без дешифровки
                 .collect(Collectors.toList());
     }
 
@@ -63,29 +64,17 @@ public class UserService {
         user.setPassword(encryptedPassword);
 
         User savedUser = userRepository.save(user);
-        return convertToResponseDTO(savedUser);
-    }
-
-    /**
-     * Преобразование User в UserResponseDTO с дешифровкой пароля
-     */
-    private UserResponseDTO convertToResponseDTO(User user) {
-        UserResponseDTO dto = userMapper.toResponseDTO(user);
-
-        // Дешифровка пароля для администратора
-        String decryptedPassword = passwordConverter.convertToEntityAttribute(user.getPassword());
-        dto.setPassword(decryptedPassword);
-
-        return dto;
+        return userMapper.toResponseDTO(savedUser); // Изменил: без дешифровки пароля
     }
 
     /**
      * Найти пользователя по ID
+     * Изменил: убрана дешифровка пароля
      */
     @Transactional(readOnly = true)
     public UserResponseDTO getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Пользователь с ID " + id + " не найден"));
-        return convertToResponseDTO(user);
+        return userMapper.toResponseDTO(user); // Изменил: без дешифровки пароля
     }
 }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO для ответа с данными пользователя
- * Изменил: поле role теперь типа Role (сущность) вместо Role.RoleName
+ * Изменил: удалено поле password - хеши паролей не должны раскрываться
  */
 @Data
 @NoArgsConstructor
@@ -23,9 +23,8 @@ public class UserResponseDTO {
     @Schema(description = "Имя пользователя", example = "ivan_ivanov")
     private String username;
 
-    @Schema(description = "Пароль пользователя (дешифрованный)", example = "password123")
-    private String password;
-
     @Schema(description = "Основная роль пользователя")
     private Role role; // Изменил на тип Role (сущность)
+
+    // Изменил: удалено поле password - хеши паролей не должны возвращаться в API
 }

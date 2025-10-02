@@ -9,13 +9,14 @@ import java.util.Base64;
 
 /**
  * Конвертер для шифрования паролей с использованием AES
- * Изменил: улучшена обработка исключений и добавлено логирование
+ * Изменил: добавлена проверка на формат BCrypt хеша для избежания двойного шифрования
  */
 @Component
 public class PasswordConverter implements AttributeConverter<String, String> {
 
     private static final String ALGORITHM = "AES";
     private static final String SECRET = "mySuperSecretKey"; // В реальном приложении вынести в конфигурацию
+    private static final String BCRYPT_PREFIX = "$2a$"; // Префикс BCrypt хешей
 
     private SecretKeySpec getSecretKey() {
         byte[] key = SECRET.getBytes();
@@ -27,6 +28,11 @@ public class PasswordConverter implements AttributeConverter<String, String> {
     public String convertToDatabaseColumn(String attribute) {
         if (attribute == null) {
             return null;
+        }
+
+        // Изменил: если пароль уже в формате BCrypt, не шифруем его повторно
+        if (attribute.startsWith(BCRYPT_PREFIX)) {
+            return attribute;
         }
 
         try {
@@ -43,6 +49,11 @@ public class PasswordConverter implements AttributeConverter<String, String> {
     public String convertToEntityAttribute(String dbData) {
         if (dbData == null) {
             return null;
+        }
+
+        // Изменил: если данные в формате BCrypt, возвращаем как есть
+        if (dbData.startsWith(BCRYPT_PREFIX)) {
+            return dbData;
         }
 
         try {

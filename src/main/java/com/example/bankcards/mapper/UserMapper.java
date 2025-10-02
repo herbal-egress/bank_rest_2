@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * Маппер для преобразования между User и DTO
- * Изменил: исправлены типы для работы с Role entity
+ * Изменил: убрано поле password из маппинга для безопасности
  */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -23,18 +23,17 @@ public interface UserMapper {
 
     /**
      * Преобразование UserCreationDTO в User
-     * Изменил: правильное создание объектов Role
+     * Изменил: правильное создание объектов Role, пароль игнорируется (обрабатывается в сервисе)
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "roles", expression = "java(getDefaultRoles())")
-    @Mapping(target = "password", ignore = true) // Пароль обрабатывается отдельно
+    @Mapping(target = "password", ignore = true) // Пароль обрабатывается отдельно в сервисе
     User toEntity(UserCreationDTO userCreationDTO);
 
     /**
      * Преобразование User в UserResponseDTO
-     * Изменил: возвращается Role entity вместо RoleName
+     * Изменил: поле password полностью удалено из DTO по соображениям безопасности
      */
-    @Mapping(target = "password", ignore = true) // Пароль обрабатывается отдельно
     @Mapping(target = "role", expression = "java(getPrimaryRole(user.getRoles()))")
     UserResponseDTO toResponseDTO(User user);
 
