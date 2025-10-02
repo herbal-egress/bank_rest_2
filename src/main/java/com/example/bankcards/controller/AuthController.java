@@ -20,7 +20,6 @@ public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
 
-    // изменено: удалена инжекция PasswordUtil
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
@@ -29,13 +28,15 @@ public class AuthController {
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequest, BindingResult bindingResult) {
         logger.info("Получен запрос на авторизацию пользователя: {}", loginRequest.getUsername());
         if (bindingResult.hasErrors()) {
+            logger.warn("Ошибки валидации при авторизации: {}", bindingResult.getAllErrors());
             return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
         }
         try {
-            // изменено: удалено шифрование пароля через PasswordUtil
             TokenResponseDTO tokenResponse = authService.authenticate(loginRequest);
+            logger.info("Авторизация успешна для пользователя: {}", loginRequest.getUsername());
             return ResponseEntity.ok(tokenResponse);
         } catch (Exception e) {
+            logger.error("Ошибка авторизации для пользователя {}: {}", loginRequest.getUsername(), e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("ошибка", "Неверное имя пользователя или пароль"));
         }
     }

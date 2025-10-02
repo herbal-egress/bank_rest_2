@@ -32,7 +32,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/user/transactions/transfer", "/api/auth/**")
+                        // изменил: добавлены ВСЕ пути администратора и пользователя в исключения CSRF
+                        .ignoringRequestMatchers("/swagger-ui/**", "/v3/api-docs/**",
+                                "/api/user/**", "/api/auth/**", "/api/admin/**")
                 )
                 .headers(headers -> headers
                         .addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"))
@@ -53,8 +55,9 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
+        // изменил: правильное создание DaoAuthenticationProvider с UserDetailsService в конструкторе
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
-        authProvider.setPasswordEncoder(new BCryptPasswordEncoder()); // изменено: явное использование BCryptPasswordEncoder
+        authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
