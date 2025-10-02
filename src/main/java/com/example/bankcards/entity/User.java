@@ -26,11 +26,7 @@ public class User {
     @Column(name = "password", nullable = false)
     @Convert(disableConversion = true)
     private String password;
-    @NotNull
-    @Email(message = "Некорректный формат email")
-    @Column(name = "email", nullable = false, unique = true)
-    @Convert(disableConversion = true)
-    private String email;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -44,10 +40,9 @@ public class User {
     public User() {
     }
 
-    public User(String username, String password, String email, Set<Role> roles) {
+    public User(String username, String password, Set<Role> roles) {
         this.username = username;
         this.password = password;
-        this.email = email;
         this.roles = roles;
     }
 
@@ -75,13 +70,7 @@ public class User {
         this.password = password;
     }
 
-    public String getEmail() {
-        return email;
-    }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
 
     public Set<Role> getRoles() {
         return roles;

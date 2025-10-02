@@ -15,11 +15,11 @@ VALUES (1, 'ADMIN'),
        (2, 'USER');
 
 -- changeset author:002_init_data id:4
-INSERT INTO bankrest.users (id, username, password, email)
-VALUES (1, 'admin', '$2a$12$pvCrDlm68FMPJpmgSkr0BezdHNoL7Dwb567OW7xcyouIAQxXVyP3q', 'admin@bank.test'),
-       (2, 'user', '$2a$12$pvCrDlm68FMPJpmgSkr0BezdHNoL7Dwb567OW7xcyouIAQxXVyP3q', 'user@bank.test'),
-       (3, 'test1', '$2a$12$pvCrDlm68FMPJpmgSkr0BezdHNoL7Dwb567OW7xcyouIAQxXVyP3q', 'test1@bank.test'),
-       (4, 'test2', '$2a$12$pvCrDlm68FMPJpmgSkr0BezdHNoL7Dwb567OW7xcyouIAQxXVyP3q', 'test2@bank.test');
+INSERT INTO bankrest.users (id, username, password)
+VALUES (1, 'admin', '$2a$12$Ydg5seG59XD1A1CF7CqXPe6EZbqREkxK9HeLxoIRo2cA8FWBfxdNC'),
+       (2, 'user', '$2a$12$Ydg5seG59XD1A1CF7CqXPe6EZbqREkxK9HeLxoIRo2cA8FWBfxdNC'),
+       (3, 'test1', '$2a$12$Ydg5seG59XD1A1CF7CqXPe6EZbqREkxK9HeLxoIRo2cA8FWBfxdNC'),
+       (4, 'test2', '$2a$12$Ydg5seG59XD1A1CF7CqXPe6EZbqREkxK9HeLxoIRo2cA8FWBfxdNC');
 
 -- changeset author:002_init_data id:5
 INSERT INTO bankrest.user_roles (user_id, role_id)
