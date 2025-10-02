@@ -42,10 +42,9 @@ public class Card {
     private BigDecimal balance;
 
     @NotNull
-    @Size(min = 3, max = 3, message = "CVV должен содержать 3 цифры")
-    @Pattern(regexp = "^\\d{3}$", message = "CVV должен содержать только 3 цифры")
+    @Size(max = 255, message = "CVV в зашифрованном виде не должен превышать 255 символов") // изменил: убрал min=3, увеличил max для зашифрованных данных
     @Column(name = "cvv", nullable = false)
-    @Convert(converter = CardDataConverter.class) // изменил: используем CardDataConverter
+    @Convert(converter = CardDataConverter.class)
     private String cvv;
 
     @NotNull

@@ -112,17 +112,38 @@ public class AdminCardServiceImpl implements AdminCardService {
     }
 
     @Override
+    @Transactional
     public CardDTO activateCard(Long cardId) {
         logger.info("Активация карты с ID: {}", cardId);
+
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
                     logger.error("Карта с ID {} не найдена", cardId);
                     return new CardNotFoundException("Карта с ID " + cardId + " не найдена");
                 });
-        card.setStatus(CardStatus.ACTIVE);
-        Card savedCard = cardRepository.save(card);
-        logger.info("Карта с ID {} успешно активирована", cardId);
-        return cardMapper.toDTO(savedCard);
+
+        // добавил: проверка текущего статуса карты
+        if (card.getStatus() == CardStatus.ACTIVE) {
+            logger.error("Попытка активировать активную карту с ID: {}", cardId);
+            throw new BankCardsException("Попытка активировать активную карту");
+        }
+
+        // добавил: проверка что карта заблокирована перед активацией
+        if (card.getStatus() != CardStatus.BLOCKED) {
+            logger.error("Невозможно активировать карту с ID {} со статусом: {}", cardId, card.getStatus());
+            throw new BankCardsException("Невозможно активировать карту со статусом: " + card.getStatus());
+        }
+
+        try {
+            card.setStatus(CardStatus.ACTIVE);
+            Card savedCard = cardRepository.save(card);
+            logger.info("Карта с ID {} успешно активирована", cardId);
+            return cardMapper.toDTO(savedCard);
+
+        } catch (Exception e) {
+            logger.error("Ошибка транзакции при активации карты с ID {}: {}", cardId, e.getMessage(), e);
+            throw new BankCardsException("Ошибка при активации карты: " + e.getMessage());
+        }
     }
 
     @Override
