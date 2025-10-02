@@ -1,5 +1,6 @@
 package com.example.bankcards.entity;
 
+import com.example.bankcards.util.EncryptionConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -22,9 +23,9 @@ public class User {
     @Convert(disableConversion = true)
     private String username;
     @NotNull
-    @Size(min = 8, message = "Пароль должен быть не менее 8 символов")
+    @Size(min = 3, message = "Пароль должен быть не менее 3 символов")
     @Column(name = "password", nullable = false)
-    @Convert(disableConversion = true)
+    @Convert(converter = EncryptionConverter.class)
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)

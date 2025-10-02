@@ -3,33 +3,32 @@ package com.example.bankcards.util;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Component;
 
-// Автоматический конвертер JPA для шифрования/дешифрования полей (SOLID: Single Responsibility)
-@Converter(autoApply = true)
+// Добавлено: Конвертер для хеширования паролей с использованием BCrypt
+@Component
+@Converter
 public class EncryptionConverter implements AttributeConverter<String, String> {
-    private final EncryptionUtil encryptionUtil;
 
-    // добавил: Автосвязь для инъекции EncryptionUtil (Spring best practice)
     @Autowired
-    public EncryptionConverter(EncryptionUtil encryptionUtil) {
-        this.encryptionUtil = encryptionUtil;
-    }
+    private BCryptPasswordEncoder passwordEncoder;
 
-    // Шифрование перед сохранением в базу
+    // Добавлено: Хеширование пароля при сохранении в базу
     @Override
-    public String convertToDatabaseColumn(String attribute) {
-        if (attribute == null) {
+    public String convertToDatabaseColumn(String plainPassword) {
+        // Добавлено: Проверка на null
+        if (plainPassword == null) {
             return null;
         }
-        return encryptionUtil.encrypt(attribute);
+        // Добавлено: Хеширование пароля с использованием BCrypt
+        return passwordEncoder.encode(plainPassword);
     }
 
-    // Дешифрование при чтении из базы
+    // Добавлено: Возвращение хешированного пароля без изменений при чтении
     @Override
-    public String convertToEntityAttribute(String dbData) {
-        if (dbData == null) {
-            return null;
-        }
-        return encryptionUtil.decrypt(dbData);
+    public String convertToEntityAttribute(String encryptedPassword) {
+        // Добавлено: Возвращаем хешированный пароль как есть, так как проверка выполняется в DaoAuthenticationProvider
+        return encryptedPassword;
     }
 }
