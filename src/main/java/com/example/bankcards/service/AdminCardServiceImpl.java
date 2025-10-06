@@ -53,15 +53,11 @@ public class AdminCardServiceImpl implements AdminCardService {
     }
 
     @Override
-    public Page<CardDTO> getAllCards(Long userId, String status, Pageable pageable) {
-        logger.info("Получение карт: userId={}, status={}, pageable={}", userId, status, pageable);
+    public Page<CardDTO> getAllCards(Long userId, Pageable pageable) {
+        logger.info("Получение карт: userId={}, pageable={}", userId, pageable);
         Page<Card> cards;
-        if (userId != null && status != null) {
-            cards = cardRepository.findByUserIdAndStatus(userId, CardStatus.valueOf(status), pageable);
-        } else if (userId != null) {
+       if (userId != null) {
             cards = cardRepository.findByUserId(userId, pageable);
-        } else if (status != null) {
-            cards = cardRepository.findByStatus(CardStatus.valueOf(status), pageable);
         } else {
             cards = cardRepository.findAll(pageable);
         }

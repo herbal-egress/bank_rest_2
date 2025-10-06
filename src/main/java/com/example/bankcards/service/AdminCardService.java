@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 public interface AdminCardService {
     CardDTO createCard(Long userId, CardCreationDTO cardCreationDTO);
 
-    Page<CardDTO> getAllCards(Long userId, String status, Pageable pageable);
+    Page<CardDTO> getAllCards(Long userId, Pageable pageable);
 
     CardDTO blockCard(Long cardId);
 

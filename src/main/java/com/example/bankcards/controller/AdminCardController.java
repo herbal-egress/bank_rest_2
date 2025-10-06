@@ -46,13 +46,13 @@ public class AdminCardController {
     @Operation(summary = "Получение всех карт", description = "Возвращает список карт с фильтрацией, пагинацией и сортировкой")
     public ResponseEntity<Page<CardDTO>> getAllCards(
             @RequestParam(required = false) @Positive(message = "ID пользователя должен быть положительным") Long userId,
-            @RequestParam(required = false) @Size(max = 20, message = "Статус карты не должен превышать 20 символов") String status,
+//            @RequestParam(required = false) @Size(max = 20, message = "Статус карты не должен превышать 20 символов") String status,
             @RequestParam(defaultValue = "0") @Positive(message = "Номер страницы должен быть положительным") int page,
             @RequestParam(defaultValue = "10") @Positive(message = "Размер страницы должен быть положительным") @Max(value = 50, message = "Размер страницы не должен превышать 50") int size,
             @RequestParam(defaultValue = "id") @Size(max = 50, message = "Поле сортировки не должно превышать 50 символов") @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Поле сортировки содержит недопустимые символы") String sortBy) {
-        logger.info("Получен запрос на просмотр карт: userId={}, status={}, page={}, size={}, sortBy={}", userId, status, page, size, sortBy);
+        logger.info("Получен запрос на просмотр карт: userId={}, page={}, size={}, sortBy={}", userId, page, size, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        Page<CardDTO> cards = adminCardService.getAllCards(userId, status, pageable);
+        Page<CardDTO> cards = adminCardService.getAllCards(userId, pageable);
         logger.info("Возвращено {} карт", cards.getTotalElements());
         return ResponseEntity.ok(cards);
     }
