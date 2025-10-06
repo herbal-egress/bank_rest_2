@@ -10,10 +10,7 @@ import java.util.List;
 public interface AuthService {
     TokenResponseDTO authenticate(LoginRequestDTO loginRequest);
     UserResponseDTO createUser(UserCreationDTO userDTO);
-
     List<UserResponseDTO> getAllUsers();
-
     UserResponseDTO updateUser(Long userId, UserCreationDTO userDTO);
-
     void deleteUser(Long userId);
 }

@@ -1,4 +1,3 @@
-// FILE: src/main/java/com/example/bankcards/service/AuthServiceImpl.java
 package com.example.bankcards.service;
 
 import com.example.bankcards.dto.LoginRequestDTO;
@@ -29,7 +28,7 @@ import java.util.List;
 
 /**
  * Сервис аутентификации и управления пользователями
- * Изменил: исправлена работа с Role entity
+ * Изменил: обновлен метод authenticate для возврата TokenResponseDTO с полями token, username и role
  */
 @Service
 @RequiredArgsConstructor
@@ -46,8 +45,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponseDTO authenticate(LoginRequestDTO loginRequest) {
+        // Добавлено: логирование попытки аутентификации
         logger.info("Аутентификация пользователя: {}", loginRequest.getUsername());
 
+        // Аутентификация пользователя через AuthenticationManager
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -55,11 +56,19 @@ public class AuthServiceImpl implements AuthService {
                 )
         );
 
+        // Получение данных пользователя из UserDetails
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        // Генерация JWT-токена
         String token = jwtUtil.generateToken(userDetails);
+        // Добавлено: получение роли пользователя из коллекции authorities
+        String role = userDetails.getAuthorities().stream()
+                .map(Object::toString)
+                .findFirst()
+                .orElse("ROLE_Unknown"); // Значение по умолчанию, если роль не найдена
 
+        // Изменено: возвращаем TokenResponseDTO с токеном, именем пользователя и ролью
         logger.info("Аутентификация успешна для пользователя: {}, токен сгенерирован", loginRequest.getUsername());
-        return new TokenResponseDTO(token);
+        return new TokenResponseDTO(token, userDetails.getUsername(), role);
     }
 
     @Override
