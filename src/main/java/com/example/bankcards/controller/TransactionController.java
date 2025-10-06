@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/user/transactions")
 @PreAuthorize("hasRole('USER')")
-@Tag(name = "Операции с картами. Пользователь", description = "только USER")
+@Tag(name = "Пользователь. Перевод средств", description = "только USER")
 public class TransactionController {
     private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
     private final TransactionService transactionService;

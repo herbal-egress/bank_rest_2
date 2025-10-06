@@ -6,4 +6,53 @@ info:
 servers:
   - url: http://localhost:8080
     description: Dev server
-paths: { }
+paths:
+  /api/admin/cards/create/{userId}:
+    post:
+      summary: Create a new card for a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardCreationDTO'
+            example:
+              name: "Divan McDivan" # изменил: заменил некорректное значение на имя и фамилию латиницей
+      responses:
+        '200':
+          description: Card created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+components:
+  schemas:
+    CardCreationDTO:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+    CardDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        number:
+          type: string
+        expiration:
+          type: string
+        cvv:
+          type: string
+        balance:
+          type: number
+        status:
+          type: string

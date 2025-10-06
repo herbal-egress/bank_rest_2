@@ -21,7 +21,7 @@ public class CardFactory {
         card.setExpiration(LocalDate.now().plusYears(5).format(DateTimeFormatter.ofPattern("MM-yy")));
         card.setCvv(String.format("%03d", RANDOM.nextInt(1000)));
         card.setBalance(BigDecimal.ZERO);
-        card.setId(userId);
+//        card.setId(userId);
         card.setStatus(CardStatus.ACTIVE);
         return card;
     }
