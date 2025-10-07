@@ -8,8 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
 
 @Component
 public class SecurityUtil {
@@ -55,5 +58,45 @@ public class SecurityUtil {
             return authentication.getName();
         }
         throw new AccessDeniedException("Пользователь не аутентифицирован");
+    }
+
+    // добавил: проверка наличия роли у текущего пользователя
+    public boolean hasRole(String role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)) {
+            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+            boolean hasRole = authorities.stream()
+                    .anyMatch(authority -> authority.getAuthority().equals(role));
+            logger.debug("Проверка роли {} для пользователя {}: {}", role, authentication.getName(), hasRole);
+            return hasRole;
+        }
+        return false;
+    }
+
+    // добавил: проверка что пользователь является администратором
+    public boolean isAdmin() {
+        return hasRole("ROLE_ADMIN");
+    }
+
+    // добавил: принудительная проверка прав администратора
+    public void validateAdminAccess() {
+        if (!isAdmin()) {
+            String username = getCurrentUsername();
+            logger.warn("Пользователь {} попытался выполнить действие, требующее прав администратора", username);
+            throw new AccessDeniedException("Недостаточно прав для выполнения операции");
+        }
+        logger.debug("Права администратора подтверждены для пользователя: {}", getCurrentUsername());
+    }
+
+    // добавил: проверка что пользователь работает со своими данными
+    public void validateUserAccess(Long targetUserId) {
+        Long currentUserId = getCurrentUserId();
+        if (!currentUserId.equals(targetUserId) && !isAdmin()) {
+            logger.warn("Пользователь {} попытался получить доступ к данным пользователя с ID {}",
+                    getCurrentUsername(), targetUserId);
+            throw new AccessDeniedException("Доступ к данным другого пользователя запрещен");
+        }
+        logger.debug("Доступ пользователя {} к данным пользователя с ID {} разрешен",
+                getCurrentUsername(), targetUserId);
     }
 }
