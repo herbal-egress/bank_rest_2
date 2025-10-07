@@ -22,6 +22,7 @@ import java.util.List;
 /**
  * Сервис управления пользователями
  * Добавлено: новый сервис с методами createUser, getAllUsers, updateUser, deleteUser, перенесенными из AuthServiceImpl
+ * Изменил: добавлена проверка прав администратора через SecurityUtil
  */
 @Service
 @RequiredArgsConstructor
@@ -37,6 +38,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} получает список всех пользователей", adminUsername);
@@ -49,6 +53,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public UserResponseDTO createUser(UserCreationDTO userDTO) {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} создает пользователя: {}", adminUsername, userDTO.getUsername());
@@ -89,6 +96,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public UserResponseDTO updateUser(Long userId, UserCreationDTO userDTO) {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} обновляет пользователя с ID: {}", adminUsername, userId);
@@ -128,6 +138,9 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public void deleteUser(Long userId) {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} удаляет пользователя с ID: {}", adminUsername, userId);

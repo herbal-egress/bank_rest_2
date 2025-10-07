@@ -40,6 +40,9 @@ public class AdminCardServiceImpl implements AdminCardService {
 
     @Override
     public CardDTO createCard(Long userId, CardCreationDTO cardCreationDTO) {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} создает карту для пользователя с ID: {}, имя: {}",
@@ -67,6 +70,9 @@ public class AdminCardServiceImpl implements AdminCardService {
 
     @Override
     public Page<CardDTO> getAllCards(Pageable pageable) {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} получает все карты: pageable={}", adminUsername, pageable);
@@ -80,6 +86,9 @@ public class AdminCardServiceImpl implements AdminCardService {
     @Override
     @Transactional
     public CardDTO blockCard(Long cardId) {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} блокирует карту с ID: {}", adminUsername, cardId);
@@ -125,6 +134,9 @@ public class AdminCardServiceImpl implements AdminCardService {
     @Override
     @Transactional
     public CardDTO activateCard(Long cardId) {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} активирует карту с ID: {}", adminUsername, cardId);
@@ -166,6 +178,9 @@ public class AdminCardServiceImpl implements AdminCardService {
 
     @Override
     public void deleteCard(Long cardId) {
+        // добавил: проверка прав администратора
+        securityUtil.validateAdminAccess();
+
         // добавил: логирование действия администратора
         String adminUsername = securityUtil.getCurrentUsername();
         logger.info("Администратор {} удаляет карту с ID: {}", adminUsername, cardId);
