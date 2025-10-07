@@ -1,6 +1,7 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.CardDTO;
+import com.example.bankcards.dto.PageResponse;
 import com.example.bankcards.service.UserCardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,16 +35,21 @@ public class UserCardController {
 
     @GetMapping
     @Operation(summary = "Получение карт пользователя", description = "Возвращает список карт пользователя с фильтрацией и пагинацией")
-    public ResponseEntity<Page<CardDTO>> getUserCards(
+    public ResponseEntity<PageResponse<CardDTO>> getUserCards(
             @RequestParam(required = false) @Size(max = 20, message = "Статус карты не должен превышать 20 символов") String status,
             @RequestParam(defaultValue = "0") @Positive(message = "Номер страницы должен быть положительным") int page,
             @RequestParam(defaultValue = "10") @Positive(message = "Размер страницы должен быть положительным") @Max(value = 50, message = "Размер страницы не должен превышать 50") int size,
             @RequestParam(defaultValue = "id") @Size(max = 50, message = "Поле сортировки не должно превышать 50 символов") @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Поле сортировки содержит недопустимые символы") String sortBy) {
+
         logger.info("Получен запрос на просмотр карт пользователя: status={}, page={}, size={}, sortBy={}", status, page, size, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<CardDTO> cards = userCardService.getUserCards(status, pageable);
+
+        // добавил: Использование кастомного DTO для пагинации
+        PageResponse<CardDTO> response = new PageResponse<>(cards);
+
         logger.info("Возвращено {} карт пользователя", cards.getTotalElements());
-        return ResponseEntity.ok(cards);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/block/{cardId}")
