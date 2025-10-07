@@ -3,15 +3,22 @@ package com.example.bankcards.service;
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
+import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.AccessDeniedException;
+import com.example.bankcards.exception.BankCardsException;
 import com.example.bankcards.exception.CardNotFoundException;
+import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.mapper.CardMapper;
 import com.example.bankcards.repository.CardRepository;
+import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.UserDetailsImpl;
+import com.example.bankcards.util.SecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,30 +28,47 @@ import java.math.BigDecimal;
 public class UserCardServiceImpl implements UserCardService {
     private static final Logger logger = LoggerFactory.getLogger(UserCardServiceImpl.class);
     private final CardRepository cardRepository;
+    private final SecurityUtil securityUtil; // добавил: использование SecurityUtil
     private final CardMapper cardMapper;
 
-    public UserCardServiceImpl(CardRepository cardRepository, CardMapper cardMapper) {
+    // изменил: добавляю SecurityUtil в конструктор
+    public UserCardServiceImpl(CardRepository cardRepository, SecurityUtil securityUtil, CardMapper cardMapper) {
         this.cardRepository = cardRepository;
+        this.securityUtil = securityUtil;
         this.cardMapper = cardMapper;
     }
 
     @Override
-    public Page<CardDTO> getUserCards(String status, Pageable pageable) {
-        Long userId = getCurrentUserId();
-        logger.info("Получение карт для пользователя с ID: {}, status: {}, pageable: {}", userId, status, pageable);
-        Page<Card> cards;
-        if (status != null) {
-            cards = cardRepository.findByUserIdAndStatus(userId, CardStatus.valueOf(status), pageable);
-        } else {
-            cards = cardRepository.findByUserId(userId, pageable);
+    public Page<CardDTO> getUserCards(Pageable pageable) {
+        try {
+            // изменил: используем SecurityUtil для получения ID пользователя
+            Long userId = securityUtil.getCurrentUserId();
+
+            // добавил: логирование запроса на получение карт пользователя
+            logger.info("Получение всех карт для пользователя с ID: {}, pageable: {}", userId, pageable);
+
+            // добавил: получение страницы карт из репозитория по ID пользователя
+            Page<Card> cards = cardRepository.findByUserId(userId, pageable);
+
+            // добавил: логирование результата запроса
+            logger.info("Найдено {} карт для пользователя с ID: {}", cards.getTotalElements(), userId);
+
+            // добавил: преобразование сущностей Card в DTO с использованием маппера
+            return cards.map(cardMapper::toDTO);
+
+        } catch (AccessDeniedException e) {
+            logger.error("Ошибка доступа при получении карт пользователя: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("Неожиданная ошибка при получении карт пользователя: {}", e.getMessage());
+            throw new BankCardsException("Ошибка при получении карт пользователя", e);
         }
-        logger.info("Найдено {} карт для пользователя с ID: {}", cards.getTotalElements(), userId);
-        return cards.map(cardMapper::toDTO);
     }
 
     @Override
     public String requestBlockCard(Long cardId) {
-        Long userId = getCurrentUserId();
+        // изменил: используем SecurityUtil для получения ID пользователя
+        Long userId = securityUtil.getCurrentUserId();
         logger.info("Запрос на блокировку карты с ID: {} от пользователя с ID: {}", cardId, userId);
         Card card = cardRepository.findByIdAndUserId(cardId, userId)
                 .orElseThrow(() -> {
@@ -57,7 +81,8 @@ public class UserCardServiceImpl implements UserCardService {
 
     @Override
     public BigDecimal getCardBalance(Long cardId) {
-        Long userId = getCurrentUserId();
+        // изменил: используем SecurityUtil для получения ID пользователя
+        Long userId = securityUtil.getCurrentUserId();
         logger.info("Получение баланса карты с ID: {} для пользователя с ID: {}", cardId, userId);
         Card card = cardRepository.findByIdAndUserId(cardId, userId)
                 .orElseThrow(() -> {
@@ -68,11 +93,5 @@ public class UserCardServiceImpl implements UserCardService {
         return card.getBalance();
     }
 
-    private Long getCurrentUserId() {
-        var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetailsImpl userDetails) {
-            return userDetails.getUser().getId();
-        }
-        throw new AccessDeniedException("Не удалось получить ID пользователя из контекста безопасности");
-    }
+    // удалил: метод getCurrentUserId() перенесен в SecurityUtil
 }

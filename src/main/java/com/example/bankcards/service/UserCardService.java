@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 
 public interface UserCardService {
-    Page<CardDTO> getUserCards(String status, Pageable pageable);
+    Page<CardDTO> getUserCards(Pageable pageable);
 
     String requestBlockCard(Long cardId);
 
