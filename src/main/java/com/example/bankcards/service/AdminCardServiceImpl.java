@@ -11,6 +11,7 @@ import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.CardFactory;
 import com.example.bankcards.util.CardValidator;
+import com.example.bankcards.util.SecurityUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -25,46 +26,63 @@ public class AdminCardServiceImpl implements AdminCardService {
     private final UserRepository userRepository;
     private final CardFactory cardFactory;
     private final CardMapper cardMapper;
+    private final SecurityUtil securityUtil; // добавил: использование SecurityUtil для логирования действий администратора
 
+    // изменил: добавляю SecurityUtil в конструктор
     public AdminCardServiceImpl(CardRepository cardRepository, UserRepository userRepository,
-                                CardFactory cardFactory, CardMapper cardMapper) {
+                                CardFactory cardFactory, CardMapper cardMapper, SecurityUtil securityUtil) {
         this.cardRepository = cardRepository;
         this.userRepository = userRepository;
         this.cardFactory = cardFactory;
         this.cardMapper = cardMapper;
+        this.securityUtil = securityUtil; // добавил: инициализация
     }
 
     @Override
     public CardDTO createCard(Long userId, CardCreationDTO cardCreationDTO) {
-        logger.info("Создание карты для пользователя с ID: {}, имя: {}", userId, cardCreationDTO.getName());
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} создает карту для пользователя с ID: {}, имя: {}",
+                adminUsername, userId, cardCreationDTO.getName());
+
+        // добавил: проверка существования пользователя
         userRepository.findById(userId)
                 .orElseThrow(() -> {
                     logger.error("Пользователь с ID {} не найден", userId);
                     return new UserNotFoundException("Пользователь с ID " + userId + " не найден");
                 });
+
+        // добавил: создание карты через фабрику
         CardDTO cardDTO = cardFactory.createCard(cardCreationDTO.getName(), userId);
         CardValidator.validateCard(cardDTO);
         Card card = cardMapper.toEntity(cardDTO);
         card.setUser(new com.example.bankcards.entity.User());
         card.getUser().setId(userId);
         Card savedCard = cardRepository.save(card);
-        logger.info("Карта успешно создана для пользователя с ID: {}, ID карты: {}", userId, savedCard.getId());
+
+        logger.info("Администратор {} успешно создал карту для пользователя с ID: {}, ID карты: {}",
+                adminUsername, userId, savedCard.getId());
         return cardMapper.toDTO(savedCard);
     }
 
     @Override
     public Page<CardDTO> getAllCards(Pageable pageable) {
-        logger.info("Получение всех карт: pageable={}", pageable);
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} получает все карты: pageable={}", adminUsername, pageable);
+
         // изменил: Убрана фильтрация по userId, возвращаются все карты
         Page<Card> cards = cardRepository.findAll(pageable);
-        logger.info("Найдено {} карт", cards.getTotalElements());
+        logger.info("Администратор {} получил {} карт", adminUsername, cards.getTotalElements());
         return cards.map(cardMapper::toDTO);
     }
 
     @Override
     @Transactional
     public CardDTO blockCard(Long cardId) {
-        logger.info("Блокировка карты с ID: {}", cardId);
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} блокирует карту с ID: {}", adminUsername, cardId);
 
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
@@ -74,27 +92,31 @@ public class AdminCardServiceImpl implements AdminCardService {
 
         // изменил: вместо исключения возвращаем карту с сообщением в логах
         if (card.getStatus() == CardStatus.BLOCKED) {
-            logger.warn("Карта с ID {} уже заблокирована, возвращаем текущее состояние", cardId);
+            logger.warn("Администратор {} попытался заблокировать уже заблокированную карту с ID: {}",
+                    adminUsername, cardId);
             return cardMapper.toDTO(card);
         }
 
         // изменил: проверка статуса с информативным сообщением в логах
         if (card.getStatus() != CardStatus.ACTIVE) {
-            logger.warn("Невозможно заблокировать карту с ID {} со статусом: {}", cardId, card.getStatus());
+            logger.warn("Администратор {} не может заблокировать карту с ID {} со статусом: {}",
+                    adminUsername, cardId, card.getStatus());
             // Возвращаем текущую карту без изменений
             return cardMapper.toDTO(card);
         }
 
         try {
             card.setStatus(CardStatus.BLOCKED);
-            logger.debug("Сохранение карты с ID: {} со статусом: {}", cardId, CardStatus.BLOCKED);
+            logger.debug("Администратор {} сохраняет карту с ID: {} со статусом: {}",
+                    adminUsername, cardId, CardStatus.BLOCKED);
 
             Card savedCard = cardRepository.save(card);
-            logger.info("Карта с ID {} успешно заблокирована", cardId);
+            logger.info("Администратор {} успешно заблокировал карту с ID {}", adminUsername, cardId);
             return cardMapper.toDTO(savedCard);
 
         } catch (Exception e) {
-            logger.error("Ошибка транзакции при блокировке карты с ID {}: {}", cardId, e.getMessage(), e);
+            logger.error("Ошибка транзакции при блокировке карты с ID {} администратором {}: {}",
+                    cardId, adminUsername, e.getMessage(), e);
             // Возвращаем исходную карту при ошибке
             return cardMapper.toDTO(card);
         }
@@ -103,7 +125,9 @@ public class AdminCardServiceImpl implements AdminCardService {
     @Override
     @Transactional
     public CardDTO activateCard(Long cardId) {
-        logger.info("Активация карты с ID: {}", cardId);
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} активирует карту с ID: {}", adminUsername, cardId);
 
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> {
@@ -113,13 +137,15 @@ public class AdminCardServiceImpl implements AdminCardService {
 
         // изменил: вместо исключения возвращаем карту с сообщением в логах
         if (card.getStatus() == CardStatus.ACTIVE) {
-            logger.warn("Попытка активировать активную карту с ID: {}", cardId);
+            logger.warn("Администратор {} попытался активировать активную карту с ID: {}",
+                    adminUsername, cardId);
             return cardMapper.toDTO(card);
         }
 
         // изменил: проверка статуса с информативным сообщением в логах
         if (card.getStatus() != CardStatus.BLOCKED) {
-            logger.warn("Невозможно активировать карту с ID {} со статусом: {}", cardId, card.getStatus());
+            logger.warn("Администратор {} не может активировать карту с ID {} со статусом: {}",
+                    adminUsername, cardId, card.getStatus());
             // Возвращаем текущую карту без изменений
             return cardMapper.toDTO(card);
         }
@@ -127,11 +153,12 @@ public class AdminCardServiceImpl implements AdminCardService {
         try {
             card.setStatus(CardStatus.ACTIVE);
             Card savedCard = cardRepository.save(card);
-            logger.info("Карта с ID {} успешно активирована", cardId);
+            logger.info("Администратор {} успешно активировал карту с ID {}", adminUsername, cardId);
             return cardMapper.toDTO(savedCard);
 
         } catch (Exception e) {
-            logger.error("Ошибка транзакции при активации карты с ID {}: {}", cardId, e.getMessage(), e);
+            logger.error("Ошибка транзакции при активации карты с ID {} администратором {}: {}",
+                    cardId, adminUsername, e.getMessage(), e);
             // Возвращаем исходную карту при ошибке
             return cardMapper.toDTO(card);
         }
@@ -139,12 +166,15 @@ public class AdminCardServiceImpl implements AdminCardService {
 
     @Override
     public void deleteCard(Long cardId) {
-        logger.info("Удаление карты с ID: {}", cardId);
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} удаляет карту с ID: {}", adminUsername, cardId);
+
         if (!cardRepository.existsById(cardId)) {
             logger.error("Карта с ID: {} не найдена", cardId);
             throw new CardNotFoundException("Карта с ID " + cardId + " не найдена");
         }
         cardRepository.deleteById(cardId);
-        logger.info("Карта с ID {} успешно удалена", cardId);
+        logger.info("Администратор {} успешно удалил карту с ID {}", adminUsername, cardId);
     }
 }

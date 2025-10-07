@@ -8,6 +8,7 @@ import com.example.bankcards.exception.UserNotFoundException;
 import com.example.bankcards.mapper.UserMapper;
 import com.example.bankcards.repository.RoleRepository;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,27 +32,34 @@ public class AdminServiceImpl implements AdminService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityUtil securityUtil; // добавил: использование SecurityUtil
 
     @Override
     @Transactional(readOnly = true)
     public List<UserResponseDTO> getAllUsers() {
-        // Логирование запроса на получение всех пользователей
-        logger.info("Получение списка всех пользователей");
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} получает список всех пользователей", adminUsername);
+
         List<User> users = userRepository.findAll();
-        logger.info("Найдено {} пользователей", users.size());
+        logger.info("Администратор {} получил {} пользователей", adminUsername, users.size());
         return users.stream().map(userMapper::toResponseDTO).toList();
     }
-
 
     @Override
     @Transactional
     public UserResponseDTO createUser(UserCreationDTO userDTO) {
-        // Логирование попытки создания пользователя
-        logger.info("Создание пользователя: {}", userDTO.getUsername());
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} создает пользователя: {}", adminUsername, userDTO.getUsername());
+
         // Проверка существования пользователя
         if (userRepository.existsByUsername(userDTO.getUsername())) {
+            logger.error("Администратор {} попытался создать пользователя с существующим именем: {}",
+                    adminUsername, userDTO.getUsername());
             throw new IllegalArgumentException("Пользователь с таким именем уже существует");
         }
+
         // Маппинг DTO на сущность
         User user = userMapper.toEntity(userDTO);
         // Шифрование пароля
@@ -67,26 +75,28 @@ public class AdminServiceImpl implements AdminService {
                 user.setRoles(new HashSet<>());
                 user.getRoles().add(role);
             } catch (IllegalArgumentException e) {
-                logger.error("Некорректная роль: {}", userDTO.getRole());
+                logger.error("Администратор {} указал некорректную роль: {}", adminUsername, userDTO.getRole());
                 throw new IllegalArgumentException("Некорректная роль: " + userDTO.getRole() + ". Допустимые значения: USER, ADMIN");
             }
         }
-        // Если роль не указана, используется значение по умолчанию из маппера
+
         // Сохранение пользователя
         User savedUser = userRepository.save(user);
-        logger.info("Пользователь успешно создан: {}", userDTO.getUsername());
+        logger.info("Администратор {} успешно создал пользователя: {}", adminUsername, userDTO.getUsername());
         return userMapper.toResponseDTO(savedUser);
     }
-
 
     @Override
     @Transactional
     public UserResponseDTO updateUser(Long userId, UserCreationDTO userDTO) {
-        // Логирование попытки обновления пользователя
-        logger.info("Обновление пользователя с ID: {}", userId);
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} обновляет пользователя с ID: {}", adminUsername, userId);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
-                    logger.error("Пользователь с ID {} не найден", userId);
+                    logger.error("Администратор {} попытался обновить несуществующего пользователя с ID: {}",
+                            adminUsername, userId);
                     return new UserNotFoundException("Пользователь с ID " + userId + " не найден");
                 });
 
@@ -104,27 +114,30 @@ public class AdminServiceImpl implements AdminService {
                 user.getRoles().clear();
                 user.getRoles().add(role);
             } catch (IllegalArgumentException e) {
-                logger.error("Некорректная роль: {}", userDTO.getRole());
+                logger.error("Администратор {} указал некорректную роль: {}", adminUsername, userDTO.getRole());
                 throw new IllegalArgumentException("Некорректная роль: " + userDTO.getRole() + ". Допустимые значения: USER, ADMIN");
             }
         }
 
         // Сохранение обновленного пользователя
         User savedUser = userRepository.save(user);
-        logger.info("Пользователь с ID {} успешно обновлен", userId);
+        logger.info("Администратор {} успешно обновил пользователя с ID {}", adminUsername, userId);
         return userMapper.toResponseDTO(savedUser);
     }
 
     @Override
     @Transactional
     public void deleteUser(Long userId) {
-        // Логирование попытки удаления пользователя
-        logger.info("Удаление пользователя с ID: {}", userId);
+        // добавил: логирование действия администратора
+        String adminUsername = securityUtil.getCurrentUsername();
+        logger.info("Администратор {} удаляет пользователя с ID: {}", adminUsername, userId);
+
         if (!userRepository.existsById(userId)) {
-            logger.error("Пользователь с ID {} не найден", userId);
+            logger.error("Администратор {} попытался удалить несуществующего пользователя с ID: {}",
+                    adminUsername, userId);
             throw new UserNotFoundException("Пользователь с ID " + userId + " не найден");
         }
         userRepository.deleteById(userId);
-        logger.info("Пользователь с ID {} успешно удален", userId);
+        logger.info("Администратор {} успешно удалил пользователя с ID {}", adminUsername, userId);
     }
 }
