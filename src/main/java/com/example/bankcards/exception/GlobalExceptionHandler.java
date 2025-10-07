@@ -4,6 +4,7 @@ package com.example.bankcards.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -134,14 +135,29 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
-        log.error("Внутренняя ошибка сервера: ", ex);
-
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("ошибка", "Внутренняя ошибка сервера");
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    // Изменено: Обновлён метод для обработки MethodArgumentNotValidException
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        // Добавлено: Создание мапы для хранения ошибок валидации
+        Map<String, String> errors = new HashMap<>();
+        // Добавлено: Извлечение всех ошибок валидации для полей и добавление их в мапу
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage()));
+        // Добавлено: Логирование ошибок валидации для диагностики
+        log.error("Ошибка валидации: {}", errors);
+        // Добавлено: Возврат ответа с кодом 400 и сообщениями об ошибках
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
+    // Добавлено: Обработка остальных исключений для общего случая
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleAllExceptions(Exception ex) {
+        // Добавлено: Создание мапы для общего исключения
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("ошибка", "Внутренняя ошибка сервера: " + ex.getMessage());
+        // Добавлено: Логирование исключения для диагностики
+        log.error("Внутренняя ошибка: ", ex);
+        // Добавлено: Возврат ответа с кодом 500
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
