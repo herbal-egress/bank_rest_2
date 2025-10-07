@@ -6,10 +6,7 @@ import com.example.bankcards.service.AdminCardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -44,16 +41,15 @@ public class AdminCardController {
     }
 
     @GetMapping
-    @Operation(summary = "Получение всех карт", description = "Возвращает список карт с фильтрацией, пагинацией и сортировкой")
+    @Operation(summary = "Получение всех карт", description = "Возвращает список всех карт с пагинацией и сортировкой")
     public ResponseEntity<Page<CardDTO>> getAllCards(
-            @RequestParam(required = false) @Positive(message = "ID пользователя должен быть положительным") Long userId,
-//            @RequestParam(required = false) @Size(max = 20, message = "Статус карты не должен превышать 20 символов") String status,
-            @RequestParam(defaultValue = "1") @Positive(message = "Номер страницы должен быть положительным") int page,
+            @RequestParam(defaultValue = "0") @Min(value = 0, message = "Номер страницы должен быть неотрицательным") int page,
             @RequestParam(defaultValue = "10") @Positive(message = "Размер страницы должен быть положительным") @Max(value = 50, message = "Размер страницы не должен превышать 50") int size,
             @RequestParam(defaultValue = "id") @Size(max = 50, message = "Поле сортировки не должно превышать 50 символов") @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Поле сортировки содержит недопустимые символы") String sortBy) {
-        logger.info("Получен запрос на просмотр всех карт: userId={}, page={}, size={}, sortBy={}", userId, page, size, sortBy);
+        logger.info("Получен запрос на просмотр всех карт: page={}, size={}, sortBy={}", page, size, sortBy);
+        // изменил: Убрана фильтрация по userId, возвращаются все карты
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
-        Page<CardDTO> cards = adminCardService.getAllCards(userId, pageable);
+        Page<CardDTO> cards = adminCardService.getAllCards(pageable);
         logger.info("Возвращено {} карт", cards.getTotalElements());
         return ResponseEntity.ok(cards);
     }

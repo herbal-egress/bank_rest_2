@@ -53,14 +53,10 @@ public class AdminCardServiceImpl implements AdminCardService {
     }
 
     @Override
-    public Page<CardDTO> getAllCards(Long userId, Pageable pageable) {
-        logger.info("Получение карт: userId={}, pageable={}", userId, pageable);
-        Page<Card> cards;
-       if (userId != null) {
-            cards = cardRepository.findByUserId(userId, pageable);
-        } else {
-            cards = cardRepository.findAll(pageable);
-        }
+    public Page<CardDTO> getAllCards(Pageable pageable) {
+        logger.info("Получение всех карт: pageable={}", pageable);
+        // изменил: Убрана фильтрация по userId, возвращаются все карты
+        Page<Card> cards = cardRepository.findAll(pageable);
         logger.info("Найдено {} карт", cards.getTotalElements());
         return cards.map(cardMapper::toDTO);
     }
