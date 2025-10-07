@@ -19,7 +19,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.HashMap;
+import java.util.Map;
 @RestController
 @RequestMapping("/api/admin/cards")
 @PreAuthorize("hasRole('ADMIN')")
@@ -77,10 +78,17 @@ public class AdminCardController {
 
     @DeleteMapping("/{cardId}")
     @Operation(summary = "Удаление карты", description = "Удаляет карту по её ID")
-    public ResponseEntity<Void> deleteCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
+    public ResponseEntity<Map<String, String>> deleteCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на удаление карты с ID: {}", cardId);
         adminCardService.deleteCard(cardId);
+
+
+        // добавил: Создание JSON ответа с сообщением об успешном удалении
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Карта с ID: " + cardId + " успешно удалена");
+
         logger.info("Карта с ID: {} успешно удалена", cardId);
-        return ResponseEntity.noContent().build();
+        // добавил: Возврат JSON с сообщением для Swagger UI
+        return ResponseEntity.ok(response);
     }
 }

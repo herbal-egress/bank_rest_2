@@ -145,7 +145,7 @@ public class AdminCardServiceImpl implements AdminCardService {
     public void deleteCard(Long cardId) {
         logger.info("Удаление карты с ID: {}", cardId);
         if (!cardRepository.existsById(cardId)) {
-            logger.error("Карта с ID {} не найдена", cardId);
+            logger.error("Карта с ID: {} не найдена", cardId);
             throw new CardNotFoundException("Карта с ID " + cardId + " не найдена");
         }
         cardRepository.deleteById(cardId);

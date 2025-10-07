@@ -25,7 +25,7 @@ public class UserCreationDTO {
     private String username;
 
     @NotBlank(message = "Пароль не может быть пустым")
-    @Size(min = 6, message = "Пароль должен содержать минимум 6 символов")
+    @Size(min = 3, max = 100, message = "Пароль должен быть от 3 до 100 символов")
     @Schema(description = "Пароль пользователя", example = "password123", required = true)
     private String password;
 

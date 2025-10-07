@@ -48,12 +48,10 @@ public class AdminServiceImpl implements AdminService {
     public UserResponseDTO createUser(UserCreationDTO userDTO) {
         // Логирование попытки создания пользователя
         logger.info("Создание пользователя: {}", userDTO.getUsername());
-
         // Проверка существования пользователя
         if (userRepository.existsByUsername(userDTO.getUsername())) {
             throw new IllegalArgumentException("Пользователь с таким именем уже существует");
         }
-
         // Маппинг DTO на сущность
         User user = userMapper.toEntity(userDTO);
         // Шифрование пароля
@@ -74,7 +72,6 @@ public class AdminServiceImpl implements AdminService {
             }
         }
         // Если роль не указана, используется значение по умолчанию из маппера
-
         // Сохранение пользователя
         User savedUser = userRepository.save(user);
         logger.info("Пользователь успешно создан: {}", userDTO.getUsername());

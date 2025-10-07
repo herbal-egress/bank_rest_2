@@ -22,7 +22,7 @@ public class User {
     @Convert(disableConversion = true)
     private String username;
     @NotNull
-    @Size(min = 3, message = "Пароль должен быть не менее 3 символов")
+    @Size(min = 3, max = 100, message = "Пароль должен быть от 3 до 100 символов")
     @Column(name = "password", nullable = false)
     private String password;
 
