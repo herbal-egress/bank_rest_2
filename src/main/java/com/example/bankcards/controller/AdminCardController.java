@@ -35,7 +35,7 @@ public class AdminCardController {
     @PostMapping("/create/{userId}")
     @Operation(summary = "Создание карты для пользователя", description = "Создаёт новую карту для указанного пользователя")
     public ResponseEntity<CardDTO> createCard(@PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId,
-                                              @Valid @RequestBody CardCreationDTO cardCreationDTO) {
+                                              @RequestBody @Valid CardCreationDTO cardCreationDTO) {
         logger.info("Получен запрос на создание карты для пользователя с ID: {}, имя: {}", userId, cardCreationDTO.getName());
         CardDTO createdCard = adminCardService.createCard(userId, cardCreationDTO);
         logger.info("Карта успешно создана для пользователя с ID: {}, ID карты: {}", userId, createdCard.getId());

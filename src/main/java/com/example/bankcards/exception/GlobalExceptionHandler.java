@@ -1,12 +1,14 @@
 // FILE: src/main/java/com/example/bankcards/exception/GlobalExceptionHandler.java
 package com.example.bankcards.exception;
-
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -159,5 +161,55 @@ public class GlobalExceptionHandler {
         log.error("Внутренняя ошибка: ", ex);
         // Добавлено: Возврат ответа с кодом 500
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // Добавлено: Обработка BindException для валидации
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<Map<String, String>> handleBindException(BindException ex) {
+        // Добавлено: Создание мапы для ошибок валидации
+        Map<String, String> errors = new HashMap<>();
+        // Добавлено: Извлечение ошибок валидации
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage()));
+        // Добавлено: Логирование ошибок
+        log.error("Ошибка валидации (BindException): {}", errors);
+        // Добавлено: Возврат ответа с кодом 400
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
+        // добавил: Создание мапы для хранения ошибок валидации параметров
+        Map<String, String> errors = new HashMap<>();
+        // добавил: Извлечение всех нарушений ограничений
+        ex.getConstraintViolations().forEach(violation -> {
+            String fieldName = violation.getPropertyPath().toString();
+            // добавил: Извлечение имени параметра из пути свойства
+            if (fieldName.contains(".")) {
+                fieldName = fieldName.substring(fieldName.lastIndexOf('.') + 1);
+            }
+            String errorMessage = violation.getMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        // добавил: Логирование ошибок валидации параметров
+        log.error("Ошибка валидации параметров (ConstraintViolation): {}", errors);
+        // добавил: Возврат ответа с кодом 400 и сообщениями об ошибках
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+    // Добавлено: Обработка ошибок валидации параметров метода в Spring 6+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, String>> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
+        Map<String, String> errors = new HashMap<>();
+
+        // изменил: Используем getParameterValidationResults() вместо getAllValidationResults()
+        ex.getParameterValidationResults().forEach(parameterResult -> {
+            String parameterName = parameterResult.getMethodParameter().getParameterName();
+            // изменил: Используем getResolvableErrors() для получения ошибок
+            parameterResult.getResolvableErrors().forEach(error ->
+                    errors.put(parameterName, error.getDefaultMessage())
+            );
+        });
+
+        log.error("Ошибка валидации параметров метода: {}", errors);
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }
