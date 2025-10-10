@@ -32,10 +32,10 @@ public class TransactionController {
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Перевод между картами", description = "Выполняет перевод между картами пользователя")
     public ResponseEntity<TransactionDTO> transfer(@Valid @RequestBody TransactionDTO transactionDTO) {  // изменил: минимальный DTO.
-        logger.info("Получен запрос на перевод: fromCardId={}, toCardId={}, amount={}",  // добавил: логирование.
+        logger.info("Получен запрос на перевод: с карты id={}, на карту id={}, на сумму={}",  // добавил: логирование.
                 transactionDTO.getFromCardId(), transactionDTO.getToCardId(), transactionDTO.getAmount());
         TransactionDTO result = transactionService.transfer(transactionDTO);  // изменил: вызов сервиса.
-        logger.info("Перевод на карту id={} осуществлён", result.getToCardId());
+        logger.info("Перевод осуществлён: с карты id={}, на карту id={}, на сумму={}", result.getFromCardId(), result.getToCardId(), result.getAmount());
         return new ResponseEntity<>(result, HttpStatus.OK);  // добавил: ответ 200, REST: статус-код.
     }
 }
