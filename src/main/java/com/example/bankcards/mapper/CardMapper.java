@@ -1,23 +1,30 @@
 package com.example.bankcards.mapper;
+
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.entity.Card;
-import com.example.bankcards.util.CardMaskUtil;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.MappingTarget;
-/**
- * Маппер для преобразования между Card и CardDTO с маскированием номера карты
- */
-@Mapper(componentModel = "spring")
+
+@Mapper(componentModel = "spring", uses = UserMapper.class) // Указываем UserMapper для отображения user
 public interface CardMapper {
-    @Mapping(target = "number", ignore = true)
-    CardDTO toDTO(Card card);
-    @AfterMapping
-    default void maskCardNumber(Card card, @MappingTarget CardDTO cardDTO) {
-        if (card.getNumber() != null) {
-            cardDTO.setNumber(CardMaskUtil.maskCardNumber(card.getNumber()));
-        }
-    }
+
+
+    @Mapping(source = "id", target = "id")
+
+    @Mapping(source = "number", target = "number")
+
+    @Mapping(source = "status", target = "status")
+    @Mapping(source = "balance", target = "balance")
+
+    CardDTO toDto(Card card);
+
+
+    @Mapping(source = "id", target = "id")
+
+    @Mapping(source = "number", target = "number")
+
+    @Mapping(source = "status", target = "status")
+    @Mapping(source = "balance", target = "balance")
+
     Card toEntity(CardDTO cardDTO);
 }

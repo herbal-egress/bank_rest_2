@@ -52,7 +52,7 @@ public class AdminCardServiceImpl implements AdminCardService {
         Card savedCard = cardRepository.save(card);
         logger.info("Администратор {} успешно создал карту для пользователя с ID: {}, ID карты: {}",
                 adminUsername, userId, savedCard.getId());
-        return cardMapper.toDTO(savedCard);
+        return cardMapper.toDto(savedCard);
     }
     @Override
     public Page<CardDTO> getAllCards(Pageable pageable) {
@@ -61,7 +61,7 @@ public class AdminCardServiceImpl implements AdminCardService {
         logger.info("Администратор {} получает все карты: pageable={}", adminUsername, pageable);
         Page<Card> cards = cardRepository.findAll(pageable);
         logger.info("Администратор {} получил {} карт", adminUsername, cards.getTotalElements());
-        return cards.map(cardMapper::toDTO);
+        return cards.map(cardMapper::toDto);
     }
     @Override
     @Transactional
@@ -77,12 +77,12 @@ public class AdminCardServiceImpl implements AdminCardService {
         if (card.getStatus() == CardStatus.BLOCKED) {
             logger.warn("Администратор {} попытался заблокировать уже заблокированную карту с ID: {}",
                     adminUsername, cardId);
-            return cardMapper.toDTO(card);
+            return cardMapper.toDto(card);
         }
         if (card.getStatus() != CardStatus.ACTIVE) {
             logger.warn("Администратор {} не может заблокировать карту с ID {} со статусом: {}",
                     adminUsername, cardId, card.getStatus());
-            return cardMapper.toDTO(card);
+            return cardMapper.toDto(card);
         }
         try {
             card.setStatus(CardStatus.BLOCKED);
@@ -90,11 +90,11 @@ public class AdminCardServiceImpl implements AdminCardService {
                     adminUsername, cardId, CardStatus.BLOCKED);
             Card savedCard = cardRepository.save(card);
             logger.info("Администратор {} успешно заблокировал карту с ID {}", adminUsername, cardId);
-            return cardMapper.toDTO(savedCard);
+            return cardMapper.toDto(savedCard);
         } catch (Exception e) {
             logger.error("Ошибка транзакции при блокировке карты с ID {} администратором {}: {}",
                     cardId, adminUsername, e.getMessage(), e);
-            return cardMapper.toDTO(card);
+            return cardMapper.toDto(card);
         }
     }
     @Override
@@ -111,22 +111,22 @@ public class AdminCardServiceImpl implements AdminCardService {
         if (card.getStatus() == CardStatus.ACTIVE) {
             logger.warn("Администратор {} попытался активировать активную карту с ID: {}",
                     adminUsername, cardId);
-            return cardMapper.toDTO(card);
+            return cardMapper.toDto(card);
         }
         if (card.getStatus() != CardStatus.BLOCKED) {
             logger.warn("Администратор {} не может активировать карту с ID {} со статусом: {}",
                     adminUsername, cardId, card.getStatus());
-            return cardMapper.toDTO(card);
+            return cardMapper.toDto(card);
         }
         try {
             card.setStatus(CardStatus.ACTIVE);
             Card savedCard = cardRepository.save(card);
             logger.info("Администратор {} успешно активировал карту с ID {}", adminUsername, cardId);
-            return cardMapper.toDTO(savedCard);
+            return cardMapper.toDto(savedCard);
         } catch (Exception e) {
             logger.error("Ошибка транзакции при активации карты с ID {} администратором {}: {}",
                     cardId, adminUsername, e.getMessage(), e);
-            return cardMapper.toDTO(card);
+            return cardMapper.toDto(card);
         }
     }
     @Override

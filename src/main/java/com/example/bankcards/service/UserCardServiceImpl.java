@@ -39,7 +39,7 @@ public class UserCardServiceImpl implements UserCardService {
             logger.info("Получение всех карт для пользователя с ID: {}, pageable: {}", userId, pageable);
             Page<Card> cards = cardRepository.findByUserId(userId, pageable);
             logger.info("Найдено {} карт для пользователя с ID: {}", cards.getTotalElements(), userId);
-            return cards.map(cardMapper::toDTO);
+            return cards.map(cardMapper::toDto);
         } catch (AccessDeniedException e) {
             logger.error("Ошибка доступа при получении карт пользователя: {}", e.getMessage());
             throw e;
