@@ -1,67 +1,61 @@
-openapi: 3.0.3
-info:
-  title: Bank Cards API
-  version: 1.0.0
-  description: API для управления банковскими картами
-servers:
-  - url: http://localhost:8080
-    description: Dev server
-
-# Настройки для Swagger UI
-x-swagger-ui-init:
-  docExpansion: none  # Все элементы свёрнуты по умолчанию
-  defaultModelsExpandDepth: -1  # Схемы данных скрыты
-  displayRequestDuration: true
-  tryItOutEnabled: true
-
 paths:
-  /api/admin/cards/create/{userId}:
+  /api/user/transactions/transfer:  # изменил: путь эндпоинта.
     post:
-      summary: Create a new card for a user
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
+      summary: Перевод между картами пользователя  # добавил: описание.
+      operationId: transferFunds  # добавил: уникальный ID.
+      security:
+        - bearerAuth: []  # добавил: JWT, OWASP: secure endpoint.
+      tags:
+        - User  # добавил: группировка в UI.
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CardCreationDTO'
-            example:
-              name: "Divan McDivan"
+              type: object
+              required: [fromCardId, toCardId, amount]  # добавил: обязательные поля.
+              properties:  # изменил: минимальная схема.
+                fromCardId:
+                  type: integer
+                  format: int64
+                  description: ID карты-отправителя
+                toCardId:
+                  type: integer
+                  format: int64
+                  description: ID карты-получателя
+                amount:
+                  type: number
+                  format: double
+                  minimum: 0.01
+                  description: Сумма перевода
+            example:  # изменил: пример без чувствительных данных, OWASP.
+              fromCardId: 1
+              toCardId: 2
+              amount: 100.00
       responses:
         '200':
-          description: Card created successfully
+          description: Перевод успешен
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CardDTO'
-
-components:
-  schemas:
-    CardCreationDTO:
-      type: object
-      properties:
-        name:
-          type: string
-      required:
-        - name
-    CardDTO:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-        number:
-          type: string
-        expiration:
-          type: string
-        cvv:
-          type: string
-        balance:
-          type: number
-        status:
-          type: string
+                type: object
+                properties:  # изменил: минимальный ответ.
+                  fromCardId:
+                    type: integer
+                    format: int64
+                  toCardId:
+                    type: integer
+                    format: int64
+                  amount:
+                    type: number
+                    format: double
+              example:
+                fromCardId: 1
+                toCardId: 2
+                amount: 100.00
+        '400':
+          description: Неверные данные (например, недостаточно средств)
+        '403':
+          description: Доступ запрещён
+        '404':
+          description: Карта не найдена

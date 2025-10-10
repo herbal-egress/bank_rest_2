@@ -3,10 +3,12 @@ package com.example.bankcards.controller;
 import com.example.bankcards.dto.TransactionDTO;
 import com.example.bankcards.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/user/transactions")
-@PreAuthorize("hasRole('USER')")
+@SecurityRequirement(name = "bearerAuth")  // добавил: JWT для Swagger, OWASP: secure endpoint.
 @Tag(name = "Пользователь. Перевод средств", description = "только USER")
 public class TransactionController {
     private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
@@ -27,17 +29,13 @@ public class TransactionController {
     }
 
     @PostMapping("/transfer")
+    @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Перевод между картами", description = "Выполняет перевод между картами пользователя")
-    public ResponseEntity<TransactionDTO> transfer(@Valid @RequestBody TransactionDTO transactionDTO) {
-        logger.info("Получен запрос на перевод: с карты {} на карту {}, сумма: {}",
-                transactionDTO.getFromCard().getId(), transactionDTO.getToCard().getId(), transactionDTO.getAmount());
-        if (transactionDTO.getFromCard().getId() <= 0 || transactionDTO.getToCard().getId() <= 0) {
-            logger.error("ID карт должны быть положительными: fromCardId={}, toCardId={}",
-                    transactionDTO.getFromCard().getId(), transactionDTO.getToCard().getId());
-            throw new IllegalArgumentException("ID карт должны быть положительными");
-        }
-        TransactionDTO result = transactionService.transfer(transactionDTO);
-        logger.info("Перевод успешно выполнен: ID транзакции {}, сумма: {}", result.getId(), result.getAmount());
-        return ResponseEntity.status(201).body(result);
+    public ResponseEntity<TransactionDTO> transfer(@Valid @RequestBody TransactionDTO transactionDTO) {  // изменил: минимальный DTO.
+        logger.info("Получен запрос на перевод: fromCardId={}, toCardId={}, amount={}",  // добавил: логирование.
+                transactionDTO.getFromCardId(), transactionDTO.getToCardId(), transactionDTO.getAmount());
+        TransactionDTO result = transactionService.transfer(transactionDTO);  // изменил: вызов сервиса.
+        logger.info("Перевод на карту id={} осуществлён", result.getToCardId());
+        return new ResponseEntity<>(result, HttpStatus.OK);  // добавил: ответ 200, REST: статус-код.
     }
 }

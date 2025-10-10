@@ -5,10 +5,6 @@ import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.Transaction;
 import com.example.bankcards.entity.TransactionStatus;
-import com.example.bankcards.exception.AccessDeniedException;
-import com.example.bankcards.exception.CardNotFoundException;
-import com.example.bankcards.exception.InvalidTransactionException;
-import com.example.bankcards.mapper.TransactionMapper;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransactionRepository;
 import com.example.bankcards.util.SecurityUtil;
@@ -17,78 +13,84 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Service
+@Service  // добавил: аннотация сервиса.
 public class TransactionServiceImpl implements TransactionService {
-    private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);  // добавил: логирование.
+
     private final CardRepository cardRepository;
     private final TransactionRepository transactionRepository;
-    private final TransactionMapper transactionMapper;
-    private final SecurityUtil securityUtil; // добавил: использование SecurityUtil
+    private final SecurityUtil securityUtil;
 
-    // изменил: добавляю SecurityUtil в конструктор
-    public TransactionServiceImpl(CardRepository cardRepository, TransactionRepository transactionRepository,
-                                  TransactionMapper transactionMapper, SecurityUtil securityUtil) {
+    public TransactionServiceImpl(CardRepository cardRepository, TransactionRepository transactionRepository, SecurityUtil securityUtil) {  // добавил: DI.
         this.cardRepository = cardRepository;
         this.transactionRepository = transactionRepository;
-        this.transactionMapper = transactionMapper;
-        this.securityUtil = securityUtil; // добавил: инициализация
+        this.securityUtil = securityUtil;
     }
 
     @Override
-    @Transactional
+    @Transactional  // добавил: транзакция, ACID для БД.
     public TransactionDTO transfer(TransactionDTO transactionDTO) {
-        // изменил: используем SecurityUtil для получения ID пользователя
-        Long userId = securityUtil.getCurrentUserId();
-        logger.info("Выполнение перевода с карты {} на карту {} на сумму {} для пользователя с ID: {}",
-                transactionDTO.getFromCard().getId(), transactionDTO.getToCard().getId(),
-                transactionDTO.getAmount(), userId);
+        Long userId = securityUtil.getCurrentUserId();  // добавил: получение текущего пользователя, OWASP: auth context.
+        Long fromCardId = transactionDTO.getFromCardId();
+        Long toCardId = transactionDTO.getToCardId();
+        BigDecimal amount = transactionDTO.getAmount();
 
-        // добавил: проверка что обе карты принадлежат текущему пользователю
-        Card fromCard = cardRepository.findByIdAndUserId(transactionDTO.getFromCard().getId(), userId)
-                .orElseThrow(() -> {
-                    logger.error("Карта отправителя с ID {} не найдена для пользователя с ID: {}",
-                            transactionDTO.getFromCard().getId(), userId);
-                    return new CardNotFoundException("Карта отправителя с ID " + transactionDTO.getFromCard().getId() + " не найдена");
-                });
-
-        Card toCard = cardRepository.findByIdAndUserId(transactionDTO.getToCard().getId(), userId)
-                .orElseThrow(() -> {
-                    logger.error("Карта получателя с ID {} не найдена для пользователя с ID: {}",
-                            transactionDTO.getToCard().getId(), userId);
-                    return new CardNotFoundException("Карта получателя с ID " + transactionDTO.getToCard().getId() + " не найдена");
-                });
-
-        // добавил: проверка достаточности средств на карте отправителя
-        if (fromCard.getBalance().compareTo(transactionDTO.getAmount()) < 0) {
-            logger.error("Недостаточно средств на карте с ID: {}", fromCard.getId());
-            throw new InvalidTransactionException("Недостаточно средств на карте с ID " + fromCard.getId());
+        // добавил: проверка, что карты разные, REST: clear validation.
+        if (fromCardId.equals(toCardId)) {
+            logger.error("Ошибка: перевод на ту же карту, fromCardId={}", fromCardId);
+            throw new IllegalArgumentException("Нельзя переводить на ту же карту");
         }
 
-        // добавил: проверка активности обеих карт
-        if (fromCard.getStatus() != CardStatus.ACTIVE || toCard.getStatus() != CardStatus.ACTIVE) {
-            logger.error("Одна из карт не активна: fromCardId={}, toCardId={}", fromCard.getId(), toCard.getId());
-            throw new InvalidTransactionException("Одна из карт не активна");
+        // Проверка принадлежности карт
+        Card fromCard = cardRepository.findByIdAndUserId(fromCardId, userId)
+                .orElseThrow(() -> {
+                    logger.error("Карта {} не найдена или не принадлежит пользователю {}", fromCardId, userId);
+                    return new IllegalArgumentException("Карта-отправитель не найдена или не принадлежит вам");
+                });
+        Card toCard = cardRepository.findByIdAndUserId(toCardId, userId)
+                .orElseThrow(() -> {
+                    logger.error("Карта {} не найдена или не принадлежит пользователю {}", toCardId, userId);
+                    return new IllegalArgumentException("Карта-получатель не найдена или не принадлежит вам");
+                });
+
+        // Проверка статуса карт
+        if (!fromCard.getStatus().equals(CardStatus.ACTIVE) || !toCard.getStatus().equals(CardStatus.ACTIVE)) {
+            logger.error("Карта {} или {} не активна", fromCardId, toCardId);
+            throw new IllegalArgumentException("Одна из карт не активна");
         }
 
-        // добавил: выполнение транзакции с обновлением балансов
-        fromCard.setBalance(fromCard.getBalance().subtract(transactionDTO.getAmount()));
-        toCard.setBalance(toCard.getBalance().add(transactionDTO.getAmount()));
+        // Проверка баланса
+        if (fromCard.getBalance().compareTo(amount) < 0) {
+            logger.error("Недостаточно средств на карте {}, баланс: {}, требуемая сумма: {}", fromCardId, fromCard.getBalance(), amount);
+            throw new IllegalArgumentException("Недостаточно средств на карте-отправителе");
+        }
 
-        // добавил: сохранение обновленных карт
-        cardRepository.save(fromCard);
+        // Обновление балансов
+        fromCard.setBalance(fromCard.getBalance().subtract(amount));
+        toCard.setBalance(toCard.getBalance().add(amount));
+        cardRepository.save(fromCard);  // добавил: сохранение.
         cardRepository.save(toCard);
 
-        // добавил: создание и сохранение записи о транзакции
-        Transaction transaction = transactionMapper.toEntity(transactionDTO);
+        // Создание транзакции
+        Transaction transaction = new Transaction();
+        transaction.setFromCard(fromCard);
+        transaction.setToCard(toCard);
+        transaction.setAmount(amount);
         transaction.setTimestamp(LocalDateTime.now());
         transaction.setStatus(TransactionStatus.COMPLETED);
         Transaction savedTransaction = transactionRepository.save(transaction);
 
-        logger.info("Перевод успешно выполнен: ID транзакции {}", savedTransaction.getId());
-        return transactionMapper.toDTO(savedTransaction);
-    }
+        logger.info("Транзакция c id={} создана", savedTransaction.getId());
 
-    // удалил: метод getCurrentUserId() заменен на использование SecurityUtil
+        // Формирование ответа
+        TransactionDTO response = new TransactionDTO();
+        response.setFromCardId(transactionDTO.getFromCardId());
+        response.setToCardId(transactionDTO.getToCardId());
+        response.setAmount(savedTransaction.getAmount());
+        return response;  // добавил: минимальный ответ, REST: only necessary data.
+    }
 }

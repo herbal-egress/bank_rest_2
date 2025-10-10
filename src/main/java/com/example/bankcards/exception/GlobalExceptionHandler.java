@@ -17,6 +17,16 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+
+
+//    @ExceptionHandler(Exception.class)  // добавил: общий обработчик, OWASP: no stacktrace leaks.
+//    public ResponseEntity<String> handleGeneralException(Exception ex) {
+//        log.error("Необработанная ошибка: {}", ex.getMessage());
+//        return new ResponseEntity<>("Внутренняя ошибка сервера", HttpStatus.INTERNAL_SERVER_ERROR);
+//    }
+
+
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleUserNotFoundException(UserNotFoundException ex) {
         log.warn("Пользователь не найден: {}", ex.getMessage());
