@@ -1,5 +1,4 @@
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.UserCreationDTO;
 import com.example.bankcards.dto.UserResponseDTO;
 import com.example.bankcards.service.AdminService;
@@ -9,11 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
-
 import java.util.List;
-
 /**
  * Контроллер для административных операций с пользователями
  * Изменил: заменен UserService на AdminService, удален getUserById, добавлены updateUser и deleteUser
@@ -23,9 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Администратор. Операции с пользователями", description = "CRUD с пользователями")
 public class AdminController {
-
     private final AdminService adminService;
-
     /**
      * Получить всех пользователей
      * Изменил: использует AdminService вместо UserService
@@ -37,7 +31,6 @@ public class AdminController {
         List<UserResponseDTO> users = adminService.getAllUsers();
         return ResponseEntity.ok(users);
     }
-
     /**
      * Создать нового пользователя
      * Изменил: использует AdminService вместо UserService
@@ -49,7 +42,6 @@ public class AdminController {
         UserResponseDTO createdUser = adminService.createUser(userCreationDTO);
         return ResponseEntity.ok(createdUser);
     }
-
     /**
      * Обновить пользователя по ID
      * Добавлено: новый эндпоинт для обновления пользователя через AdminService
@@ -61,7 +53,6 @@ public class AdminController {
         UserResponseDTO updatedUser = adminService.updateUser(id, userCreationDTO);
         return ResponseEntity.ok(updatedUser);
     }
-
     /**
      * Удалить пользователя по ID
      * Добавлено: новый эндпоинт для удаления пользователя через AdminService

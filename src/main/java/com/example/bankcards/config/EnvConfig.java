@@ -1,11 +1,9 @@
 package com.example.bankcards.config;
-
 import com.example.bankcards.exception.EnvLoadException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-
 @Configuration
 @Slf4j
 public class EnvConfig {
@@ -21,7 +19,6 @@ public class EnvConfig {
     private String encryptionSecret;
     @Value("${JWT_ROTATION_INTERVAL}")
     private long jwtExpirationMs;
-
     @PostConstruct
     public void init() {
         if (dbUrl == null || dbUrl.isEmpty()) {
@@ -50,27 +47,21 @@ public class EnvConfig {
         }
         log.info("Переменные окружения из .env загружены успешно.");
     }
-
     public String getDbUrl() {
         return dbUrl;
     }
-
     public String getDbUsername() {
         return dbUsername;
     }
-
     public String getDbPassword() {
         return dbPassword;
     }
-
     public String getJwtSecret() {
         return jwtSecret;
     }
-
     public String getEncryptionSecret() {
         return encryptionSecret;
     }
-
     public long getJwtExpirationMs() {
         return jwtExpirationMs;
     }

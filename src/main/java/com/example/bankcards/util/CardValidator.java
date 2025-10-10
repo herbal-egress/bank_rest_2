@@ -1,13 +1,10 @@
 package com.example.bankcards.util;
-
 import com.example.bankcards.dto.CardDTO;
 import jakarta.validation.ValidationException;
-
 public class CardValidator {
     private static final String CARD_NUMBER_PATTERN = "\\d{16}";
     private static final String NAME_PATTERN = "^[A-Za-z]+\\s[A-Za-z]+$";
     private static final String CCV_PATTERN = "\\d{3}";
-
     public static void validateCard(CardDTO cardDTO) {
         if (!cardDTO.getNumber().matches(CARD_NUMBER_PATTERN)) {
             throw new ValidationException("Номер карты должен содержать 16 цифр");

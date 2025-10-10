@@ -17,13 +17,10 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
   rotation-interval: ${JWT_ROTATION_INTERVAL:86400000}
-
 encryption:
   secret-key: ${ENCRYPTION_SECRET}
-
 server:
   port: ${SERVER_PORT}
-
 logging:
   level:
     org.springframework.boot.context.config: DEBUG

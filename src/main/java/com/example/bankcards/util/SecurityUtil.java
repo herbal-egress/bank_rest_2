@@ -1,5 +1,4 @@
 package com.example.bankcards.util;
-
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.AccessDeniedException;
 import com.example.bankcards.exception.UserNotFoundException;
@@ -11,34 +10,25 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-
 import java.util.Collection;
-
 @Component
 public class SecurityUtil {
     private static final Logger logger = LoggerFactory.getLogger(SecurityUtil.class);
     private final UserRepository userRepository;
-
-    // добавил: конструктор с инъекцией UserRepository
     public SecurityUtil(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
-
-    // добавил: получение текущего ID пользователя из контекста безопасности
     public Long getCurrentUserId() {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)) {
                 String username = authentication.getName();
                 logger.info("Поиск пользователя по имени: {}", username);
-
-                // добавил: поиск пользователя в репозитории
                 User user = userRepository.findByUsername(username)
                         .orElseThrow(() -> {
                             logger.error("Пользователь не найден в базе данных: {}", username);
                             return new UserNotFoundException("Пользователь не найден: " + username);
                         });
-
                 logger.info("Найден пользователь с ID: {}", user.getId());
                 return user.getId();
             } else {
@@ -50,8 +40,6 @@ public class SecurityUtil {
             throw new AccessDeniedException("Не удалось получить ID пользователя из контекста безопасности", e);
         }
     }
-
-    // добавил: получение имени текущего пользователя
     public String getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)) {
@@ -59,8 +47,6 @@ public class SecurityUtil {
         }
         throw new AccessDeniedException("Пользователь не аутентифицирован");
     }
-
-    // добавил: проверка наличия роли у текущего пользователя
     public boolean hasRole(String role) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)) {
@@ -72,13 +58,9 @@ public class SecurityUtil {
         }
         return false;
     }
-
-    // добавил: проверка что пользователь является администратором
     public boolean isAdmin() {
         return hasRole("ROLE_ADMIN");
     }
-
-    // добавил: принудительная проверка прав администратора
     public void validateAdminAccess() {
         if (!isAdmin()) {
             String username = getCurrentUsername();
@@ -87,8 +69,6 @@ public class SecurityUtil {
         }
         logger.debug("Права администратора подтверждены для пользователя: {}", getCurrentUsername());
     }
-
-    // добавил: проверка что пользователь работает со своими данными
     public void validateUserAccess(Long targetUserId) {
         Long currentUserId = getCurrentUserId();
         if (!currentUserId.equals(targetUserId) && !isAdmin()) {

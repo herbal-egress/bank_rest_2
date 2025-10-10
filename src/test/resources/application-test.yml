@@ -15,9 +15,7 @@ jwt:
   secret: test-secret
   expiration: 3600000
   rotation-interval: 60000
-
 encryption:
   secret-key: test-encryption-secret-key-16-chars
-
 server:
   port: 0

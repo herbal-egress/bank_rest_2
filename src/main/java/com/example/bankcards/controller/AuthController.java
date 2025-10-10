@@ -1,5 +1,4 @@
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.LoginRequestDTO;
 import com.example.bankcards.dto.TokenResponseDTO;
 import com.example.bankcards.service.AuthService;
@@ -10,22 +9,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
-
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Аутентификация", description = "Здесь получаем токен")
 public class AuthController {
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
-
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO loginRequest, BindingResult bindingResult) {
         logger.info("Получен запрос на авторизацию пользователя: {}", loginRequest.getUsername());

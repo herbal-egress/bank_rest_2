@@ -1,5 +1,4 @@
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.TransactionDTO;
 import com.example.bankcards.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,27 +14,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 @RestController
 @RequestMapping("/api/user/transactions")
-@SecurityRequirement(name = "bearerAuth")  // добавил: JWT для Swagger, OWASP: secure endpoint.
+@SecurityRequirement(name = "bearerAuth")  
 @Tag(name = "Пользователь. Перевод средств", description = "только USER")
 public class TransactionController {
     private static final Logger logger = LoggerFactory.getLogger(TransactionController.class);
     private final TransactionService transactionService;
-
     public TransactionController(TransactionService transactionService) {
         this.transactionService = transactionService;
     }
-
     @PostMapping("/transfer")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Перевод между картами", description = "Выполняет перевод между картами пользователя")
-    public ResponseEntity<TransactionDTO> transfer(@Valid @RequestBody TransactionDTO transactionDTO) {  // изменил: минимальный DTO.
-        logger.info("Получен запрос на перевод: с карты id={}, на карту id={}, на сумму={}",  // добавил: логирование.
+    public ResponseEntity<TransactionDTO> transfer(@Valid @RequestBody TransactionDTO transactionDTO) {  
+        logger.info("Получен запрос на перевод: с карты id={}, на карту id={}, на сумму={}",  
                 transactionDTO.getFromCardId(), transactionDTO.getToCardId(), transactionDTO.getAmount());
-        TransactionDTO result = transactionService.transfer(transactionDTO);  // изменил: вызов сервиса.
+        TransactionDTO result = transactionService.transfer(transactionDTO);  
         logger.info("Перевод осуществлён: с карты id={}, на карту id={}, на сумму={}", result.getFromCardId(), result.getToCardId(), result.getAmount());
-        return new ResponseEntity<>(result, HttpStatus.OK);  // добавил: ответ 200, REST: статус-код.
+        return new ResponseEntity<>(result, HttpStatus.OK);  
     }
 }
