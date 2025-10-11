@@ -1,7 +1,10 @@
+// UserCardController.java - добавляю маскирование
 package com.example.bankcards.controller;
+
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.dto.PageResponse;
 import com.example.bankcards.service.UserCardService;
+import com.example.bankcards.util.CardMaskUtil; // добавил: импорт утилиты маскирования
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.*;
@@ -15,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
+
 @RestController
 @RequestMapping("/api/user/cards")
 @PreAuthorize("hasRole('USER')")
@@ -25,6 +29,7 @@ public class UserCardController {
     public UserCardController(UserCardService userCardService) {
         this.userCardService = userCardService;
     }
+
     @GetMapping
     @Operation(summary = "Получение карт пользователя", description = "Возвращает список карт пользователя с фильтрацией и пагинацией")
     public ResponseEntity<PageResponse<CardDTO>> getUserCards(
@@ -34,10 +39,14 @@ public class UserCardController {
         logger.info("Получен запрос на просмотр карт пользователя: page={}, size={}, sortBy={}", page, size, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<CardDTO> cards = userCardService.getUserCards(pageable);
+        // добавил: Маскируем номера всех карт в списке
+        cards.getContent().forEach(card ->
+                card.setNumber(CardMaskUtil.maskCardNumber(card.getNumber())));
         PageResponse<CardDTO> response = new PageResponse<>(cards);
         logger.info("Возвращено {} карт пользователя", cards.getTotalElements());
         return ResponseEntity.ok(response);
     }
+
     @PostMapping("/block/{cardId}")
     @Operation(summary = "Запрос на блокировку карты", description = "Отправляет запрос на блокировку карты по её ID")
     public ResponseEntity<String> requestBlockCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
@@ -46,6 +55,7 @@ public class UserCardController {
         logger.info("Запрос на блокировку карты с ID: {} успешно обработан: {}", cardId, response);
         return ResponseEntity.ok(response);
     }
+
     @GetMapping("/balance/{cardId}")
     @Operation(summary = "Получение баланса карты", description = "Возвращает баланс карты по её ID")
     public ResponseEntity<BigDecimal> getCardBalance(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
