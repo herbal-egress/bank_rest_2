@@ -5,9 +5,8 @@ import com.example.bankcards.entity.Card;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = UserMapper.class) // Указываем UserMapper для отображения user
+@Mapper(componentModel = "spring", uses = UserMapper.class) // UserMapper используется для маппинга пользователя
 public interface CardMapper {
-
 
     @Mapping(source = "id", target = "id")
 
@@ -17,7 +16,6 @@ public interface CardMapper {
     @Mapping(source = "balance", target = "balance")
 
     CardDTO toDto(Card card);
-
 
     @Mapping(source = "id", target = "id")
 

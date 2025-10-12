@@ -26,14 +26,14 @@ SELECT setval('bankrest.cards_id_seq', COALESCE((SELECT MAX(id) FROM bankrest.ca
 -- changeset author:002_init_data id:7
 -- Реальные номера карт (без шифрования), реальные CVV (3 цифры)
 -- CardDataConverter автоматически зашифрует их при работе приложения
-INSERT INTO bankrest.cards (id, number, name, expiration, status, balance, cvv, user_id)
+INSERT INTO bankrest.cards (id, number, name, expiration, status, balance, user_id)
 VALUES
 -- Карты администратора (2 карты)
-(1, '4111111111111111', 'Admin Card', '12-27', 'ACTIVE', 10000.00, '123', 1),
-(2, '4222222222222222', 'Admin Card', '11-26', 'ACTIVE', 5000.00, '456', 1),
+(1, '4111111111111111', 'Admin Card', '12-27', 'ACTIVE', 10000.00, 1),
+(2, '4222222222222222', 'Admin Card', '11-26', 'ACTIVE', 5000.00, 1),
 -- Карты пользователя (2 карты)
-(3, '4333333333333333', 'User Card', '10-25', 'ACTIVE', 1500.00, '789', 2),
-(4, '4444444444444444', 'User Card', '09-28', 'BLOCKED', 2000.00, '321', 2);
+(3, '4333333333333333', 'User Card', '10-25', 'ACTIVE', 1500.00, 2),
+(4, '4444444444444444', 'User Card', '09-28', 'BLOCKED', 2000.00, 2);
 -- changeset author:002_init_data id:8
 -- Финальное обновление последовательности карт
 SELECT setval('bankrest.cards_id_seq', COALESCE((SELECT MAX(id) FROM bankrest.cards), 1));

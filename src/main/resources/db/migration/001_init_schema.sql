@@ -40,7 +40,6 @@ CREATE TABLE cards
     expiration VARCHAR(5)     NOT NULL,
     status     VARCHAR(20)    NOT NULL,
     balance    DECIMAL(19, 2) NOT NULL,
-    cvv        VARCHAR(255)   NOT NULL, -- изменил: увеличен размер для хранения зашифрованных данных
     user_id    BIGINT         NOT NULL REFERENCES users (id) ON DELETE CASCADE
 );
 -- changeset author:001_init_schema id:8
