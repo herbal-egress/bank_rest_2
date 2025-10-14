@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/test
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/test
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -11,6 +11,9 @@ spring:
   liquibase:
     change-log: classpath:db/migration/changelog-test.yml
     enabled: false
+  security:
+    csrf:
+      enabled: false
 jwt:
   secret: test-secret
   expiration: 3600000
