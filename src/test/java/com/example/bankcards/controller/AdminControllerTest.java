@@ -1,104 +1,175 @@
-//package com.example.bankcards.controller;
-//
-//import com.example.bankcards.dto.UserCreationDTO;
-//import com.example.bankcards.dto.UserResponseDTO;
-//import com.example.bankcards.service.AdminService;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-////import org.springframework.boot.test.mock.mockito.MockBean;
-//import org.springframework.http.MediaType;
-//import org.springframework.test.context.bean.override.mockito.MockitoBean;
-//import org.springframework.test.web.servlet.MockMvc;
-//import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-//import org.springframework.web.context.WebApplicationContext;
-//
-//import java.util.Collections;
-//
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.*;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-//
-//@WebMvcTest(AdminController.class)
-//class AdminControllerTest {
-//
-//    @Autowired
-//    private MockMvc mockMvc;
-//
-//    @MockitoBean
-//    private AdminService adminService;
-//
-//    @Autowired
-//    private ObjectMapper objectMapper;
-//
-//    @Autowired
-//    private WebApplicationContext webApplicationContext;
-//
-//    private UserCreationDTO userCreationDTO;
-//    private UserResponseDTO userResponseDTO;
-//
-//    @BeforeEach
-//    void setUp() {
-//        // Добавлено: настройка MockMvc с учётом контекста приложения
-//        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-//
-//        // Добавлено: инициализация тестовых данных
-//        userCreationDTO = new UserCreationDTO();
-//        userCreationDTO.setUsername("testuser");
-//        userCreationDTO.setPassword("password");
-//        userCreationDTO.setEmail("test@example.com");
-//
-//        userResponseDTO = new UserResponseDTO();
-//        userResponseDTO.setId(1L);
-//        userResponseDTO.setUsername("testuser");
-//        userResponseDTO.setEmail("test@example.com");
-//    }
-//
-//    @Test
-//    void createUser_Success() throws Exception {
-//        // Добавлено: настройка мока для успешного создания пользователя
-//        when(adminService.createUser(any(UserCreationDTO.class))).thenReturn(userResponseDTO);
-//
-//        // Добавлено: выполнение POST-запроса и проверка ответа
-//        mockMvc.perform(post("/api/admin/users")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(objectMapper.writeValueAsString(userCreationDTO)))
-//                .andExpect(status().isCreated())
-//                .andExpect(jsonPath("$.id").value(1L))
-//                .andExpect(jsonPath("$.username").value("testuser"));
-//
-//        // Добавлено: проверка вызова сервиса
-//        verify(adminService, times(1)).createUser(any(UserCreationDTO.class));
-//    }
-//
-//    @Test
-//    void getAllUsers_Success() throws Exception {
-//        // Добавлено: настройка мока для получения списка пользователей
-//        when(adminService.getAllUsers(0, 10)).thenReturn(Collections.singletonList(userResponseDTO));
-//
-//        // Добавлено: выполнение GET-запроса и проверка ответа
-//        mockMvc.perform(get("/api/admin/users?page=0&size=10"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$[0].id").value(1L))
-//                .andExpect(jsonPath("$[0].username").value("testuser"));
-//
-//        // Добавлено: проверка вызова сервиса
-//        verify(adminService, times(1)).getAllUsers(0, 10);
-//    }
-//
-//    @Test
-//    void deleteUser_Success() throws Exception {
-//        // Добавлено: настройка мока для успешного удаления пользователя
-//        doNothing().when(adminService).deleteUser(1L);
-//
-//        // Добавлено: выполнение DELETE-запроса и проверка ответа
-//        mockMvc.perform(delete("/api/admin/users/1"))
-//                .andExpect(status().isNoContent());
-//
-//        // Добавлено: проверка вызова сервиса
-//        verify(adminService, times(1)).deleteUser(1L);
-//    }
-//}
+package com.example.bankcards.controller;
+
+import com.example.bankcards.dto.UserCreationDTO;
+import com.example.bankcards.dto.UserResponseDTO;
+import com.example.bankcards.entity.Role;
+import com.example.bankcards.exception.UserNotFoundException;
+import com.example.bankcards.service.AdminService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Тесты для AdminController
+ * Добавлено: полное покрытие всех методов AdminController с различными сценариями
+ */
+@WebMvcTest(AdminController.class)
+@ContextConfiguration(classes = {AdminController.class, AdminService.class})
+class AdminControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private AdminService adminService;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
+
+    private UserCreationDTO userCreationDTO;
+    private UserResponseDTO userResponseDTO;
+
+    // Добавлено: настройка MockMvc и тестовых данных
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        userCreationDTO = new UserCreationDTO();
+        userCreationDTO.setUsername("testuser");
+        userCreationDTO.setPassword("password");
+        userCreationDTO.setRole("USER");
+
+        userResponseDTO = new UserResponseDTO();
+        userResponseDTO.setId(1L);
+        userResponseDTO.setUsername("testuser");
+        userResponseDTO.setRole(Role.RoleName.USER);
+    }
+
+    // Добавлено: тест успешного получения всех пользователей
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void getAllUsers_Success() throws Exception {
+        List<UserResponseDTO> users = Arrays.asList(userResponseDTO);
+        when(adminService.getAllUsers()).thenReturn(users);
+
+        mockMvc.perform(get("/api/admin/users")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].username").value("testuser"))
+                .andExpect(jsonPath("$[0].role").value("USER"));
+    }
+
+    // Добавлено: тест доступа без роли ADMIN
+    @Test
+    @WithMockUser(roles = "USER")
+    void getAllUsers_Unauthorized() throws Exception {
+        mockMvc.perform(get("/api/admin/users")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    // Добавлено: тест успешного создания пользователя
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void createUser_Success() throws Exception {
+        when(adminService.createUser(any(UserCreationDTO.class))).thenReturn(userResponseDTO);
+
+        mockMvc.perform(post("/api/admin/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\",\"password\":\"password\",\"role\":\"USER\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.role").value("USER"));
+    }
+
+    // Добавлено: тест создания с некорректной ролью
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void createUser_InvalidRole() throws Exception {
+        when(adminService.createUser(any(UserCreationDTO.class)))
+                .thenThrow(new IllegalArgumentException("Некорректная роль: INVALID"));
+
+        mockMvc.perform(post("/api/admin/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\",\"password\":\"password\",\"role\":\"INVALID\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    // Добавлено: тест создания с пустым запросом
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void createUser_EmptyRequest() throws Exception {
+        mockMvc.perform(post("/api/admin/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    // Добавлено: тест успешного обновления пользователя
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateUser_Success() throws Exception {
+        when(adminService.updateUser(eq(1L), any(UserCreationDTO.class))).thenReturn(userResponseDTO);
+
+        mockMvc.perform(put("/api/admin/users/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\",\"password\":\"newpassword\",\"role\":\"USER\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.role").value("USER"));
+    }
+
+    // Добавлено: тест обновления несуществующего пользователя
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateUser_NotFound() throws Exception {
+        when(adminService.updateUser(eq(999L), any(UserCreationDTO.class)))
+                .thenThrow(new UserNotFoundException("Пользователь с ID 999 не найден"));
+
+        mockMvc.perform(put("/api/admin/users/999")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"testuser\",\"password\":\"newpassword\",\"role\":\"USER\"}"))
+                .andExpect(status().isNotFound());
+    }
+
+    // Добавлено: тест успешного удаления пользователя
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deleteUser_Success() throws Exception {
+        doNothing().when(adminService).deleteUser(1L);
+
+        mockMvc.perform(delete("/api/admin/users/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    // Добавлено: тест удаления несуществующего пользователя
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deleteUser_NotFound() throws Exception {
+        doThrow(new UserNotFoundException("Пользователь с ID 999 не найден")).when(adminService).deleteUser(999L);
+
+        mockMvc.perform(delete("/api/admin/users/999")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+}
