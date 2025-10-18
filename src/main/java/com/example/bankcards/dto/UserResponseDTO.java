@@ -18,5 +18,5 @@ public class UserResponseDTO {
     @Schema(description = "Имя пользователя", example = "ivan_ivanov")
     private String username;
     @Schema(description = "Основная роль пользователя")
-    private Role role; 
+    private Role.RoleName role;
 }
