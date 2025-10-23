@@ -24,8 +24,8 @@ public class CardDTO {
     private String expiration;
     @NotNull(message = "Статус карты не может быть пустым")
     private CardStatus status;
-    @NotNull(message = "Баланс не может быть пустым")
-    private BigDecimal balance;
-    // изменил: удалил поле cvv, так как не храним CVV
+//    @NotNull(message = "Баланс не может быть пустым")
+//    private BigDecimal balance;
+
 
 }
