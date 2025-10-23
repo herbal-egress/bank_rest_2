@@ -1,3 +1,4 @@
+// CardDTO.java - исправленный
 package com.example.bankcards.dto;
 
 import com.example.bankcards.entity.CardStatus;
@@ -8,24 +9,28 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardDTO {
     private Long id;
-    @NotNull(message = "Поле id не может быть пустым")
-    @Pattern(regexp = "^\\d{16}$", message = "Номер карты должен содержать 16 цифр")
-    private String number;
+
+    @NotNull(message = "Номер карты не может быть пустым")
+    private String number; // изменил: убрал валидацию 16 цифр, т.к. номер маскируется
+
     @NotNull(message = "Имя держателя карты не может быть пустым")
     @Pattern(regexp = "^[A-Za-z\\s]+$", message = "Имя держателя карты должно содержать только буквы")
     private String name;
+
     @NotNull(message = "Дата истечения срока действия не может быть пустой")
-    @Pattern(regexp = "^(0[1-9]|1[0-2])/\\d{2}$", message = "ММ/ГГ")
-    private String expiration;
+    private String expiration; // изменил: убрал валидацию формата, т.к. в entity другой формат
+
     @NotNull(message = "Статус карты не может быть пустым")
     private CardStatus status;
-//    @NotNull(message = "Баланс не может быть пустым")
-//    private BigDecimal balance;
 
+    @NotNull(message = "Баланс не может быть пустым")
+    private BigDecimal balance; // добавил: раскомментировал поле
 
+    private Long userId; // добавил: ID пользователя для маппинга
 }

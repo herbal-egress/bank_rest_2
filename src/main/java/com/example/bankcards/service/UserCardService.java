@@ -6,5 +6,5 @@ import java.math.BigDecimal;
 public interface UserCardService {
     Page<CardDTO> getUserCards(Pageable pageable);
     String requestBlockCard(Long cardId);
-    BigDecimal getCardBalance(Long cardId);
+    CardDTO getCardBalance(Long cardId);
 }

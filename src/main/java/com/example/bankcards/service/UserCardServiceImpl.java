@@ -61,7 +61,7 @@ public class UserCardServiceImpl implements UserCardService {
         return "Запрос на блокировку карты с ID " + cardId + " успешно отправлен";
     }
     @Override
-    public BigDecimal getCardBalance(Long cardId) {
+    public CardDTO getCardBalance(Long cardId) { // изменил: возвращает CardDTO
         Long userId = securityUtil.getCurrentUserId();
         logger.info("Получение баланса карты с ID: {} для пользователя с ID: {}", cardId, userId);
         Card card = cardRepository.findByIdAndUserId(cardId, userId)
@@ -69,7 +69,9 @@ public class UserCardServiceImpl implements UserCardService {
                     logger.error("Карта с ID {} не найдена для пользователя с ID: {}", cardId, userId);
                     return new CardNotFoundException("Карта с ID " + cardId + " не найдена для пользователя с ID " + userId);
                 });
-        logger.info("Баланс карты с ID {}: {}", cardId, card.getBalance());
-        return card.getBalance();
+
+        CardDTO cardDTO = cardMapper.toDto(card);
+        logger.info("Баланс карты с ID {}: {}", cardId, cardDTO.getBalance());
+        return cardDTO;
     }
 }

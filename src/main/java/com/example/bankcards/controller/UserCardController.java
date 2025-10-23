@@ -58,10 +58,12 @@ public class UserCardController {
 
     @GetMapping("/balance/{cardId}")
     @Operation(summary = "Получение баланса карты", description = "Возвращает баланс карты по её ID")
-    public ResponseEntity<BigDecimal> getCardBalance(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
+    public ResponseEntity<CardDTO> getCardBalance(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на просмотр баланса карты с ID: {}", cardId);
-        BigDecimal balance = userCardService.getCardBalance(cardId);
-        logger.info("Баланс карты с ID: {} успешно получен: {}", cardId, balance);
-        return ResponseEntity.ok(balance);
+        CardDTO cardDTO = userCardService.getCardBalance(cardId); // изменил: получаем CardDTO
+        // добавил: Маскируем номер карты перед возвратом
+        cardDTO.setNumber(CardMaskUtil.maskCardNumber(cardDTO.getNumber()));
+        logger.info("Баланс карты с ID: {} успешно получен: {}", cardId, cardDTO.getBalance());
+        return ResponseEntity.ok(cardDTO);
     }
 }
