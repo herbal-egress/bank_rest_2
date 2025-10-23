@@ -7,6 +7,7 @@ import com.example.bankcards.dto.PageResponse;
 import com.example.bankcards.service.AdminCardService;
 import com.example.bankcards.util.CardMaskUtil; // добавил: импорт утилиты маскирования
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -34,12 +35,31 @@ public class AdminCardController {
     }
 
     @PostMapping("/create/{userId}")
-    @Operation(summary = "Создание карты для пользователя", description = "Создаёт новую карту для указанного пользователя")
-    public ResponseEntity<CardDTO> createCard(@PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId,
-                                              @RequestBody @Valid CardCreationDTO cardCreationDTO) {
-        logger.info("Получен запрос на создание карты для пользователя с ID: {}, имя: {}", userId, cardCreationDTO.getName());
+    @Operation(
+            summary = "Создание карты для пользователя",
+            description = "Создаёт новую карту для указанного пользователя"
+    )
+    public ResponseEntity<CardDTO> createCard(
+            @Parameter(description = "ID пользователя", required = true, example = "1")
+            @PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId,
+
+            @Parameter(
+                    description = "Имя владельца карты (только латинские буквы, формат: NAME SURNAME)",
+                    required = true,
+                    example = "IVAN IVANOV"
+            )
+            @RequestParam @NotBlank(message = "Имя владельца не может быть пустым")
+            @Size(max = 50, message = "Имя владельца не должно превышать 50 символов")
+            @Pattern(regexp = "^[A-Za-z]+\\s[A-Za-z]+$", message = "Имя владельца должно состоять из двух слов на латинице")
+            String name) {
+
+        logger.info("Получен запрос на создание карты для пользователя с ID: {}, имя: {}", userId, name);
+
+        // Создаем CardCreationDTO из параметра
+        CardCreationDTO cardCreationDTO = new CardCreationDTO(name);
         CardDTO createdCard = adminCardService.createCard(userId, cardCreationDTO);
-        // добавил: Маскируем номер карты перед возвратом
+
+        // Маскируем номер карты перед возвратом
         createdCard.setNumber(CardMaskUtil.maskCardNumber(createdCard.getNumber()));
         logger.info("Карта успешно создана для пользователя с ID: {}, ID карты: {}", userId, createdCard.getId());
         return ResponseEntity.status(201).body(createdCard);
