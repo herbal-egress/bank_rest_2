@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Тесты для AdminController
  * Изменил: исправлены проверки jsonPath для поля role, теперь ожидается объект Role с полем name
+ * Изменил: обновлены тесты createUser для работы с @RequestParam вместо @RequestBody
  */
 @WebMvcTest(AdminController.class)
 @ContextConfiguration(classes = {AdminController.class, AdminService.class})
@@ -58,10 +59,11 @@ public class AdminControllerTest {
         userResponseDTO = new UserResponseDTO();
         userResponseDTO.setId(1L);
         userResponseDTO.setUsername("testuser");
-        userResponseDTO.setRole(new Role(Role.RoleName.USER).getName());
+        // Изменил: устанавливаем строку вместо объекта Role
+        userResponseDTO.setRole(Role.RoleName.USER);
     }
 
-    // Изменил: проверка $.role.name вместо $.role
+    // Изменил: проверка $.role вместо $.role.name (role теперь строка, а не объект)
     @Test
     @WithMockUser(roles = "ADMIN")
     void getAllUsers_Success() throws Exception {
@@ -73,7 +75,7 @@ public class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
                 .andExpect(jsonPath("$[0].username").value("testuser"))
-                .andExpect(jsonPath("$[0].role.name").value("USER"));
+                .andExpect(jsonPath("$[0].role").value("USER")); // Изменил: убрал .name
     }
 
     // Добавлено: тест доступа без роли ADMIN
@@ -85,47 +87,49 @@ public class AdminControllerTest {
                 .andExpect(status().isForbidden());
     }
 
-    // Изменил: проверка $.role.name вместо $.role
+    // Изменил: обновлен для работы с @RequestParam параметрами вместо JSON body
     @Test
     @WithMockUser(roles = "ADMIN")
     void createUser_Success() throws Exception {
         when(adminService.createUser(any(UserCreationDTO.class))).thenReturn(userResponseDTO);
 
         mockMvc.perform(post("/api/admin/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"testuser\",\"password\":\"password\",\"role\":\"USER\"}"))
+                        .param("username", "testuser")
+                        .param("password", "password")
+                        .param("role", "USER")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.role.name").value("USER"));
+                .andExpect(jsonPath("$.role").value("USER")); // Изменил: убрал .name
     }
-
-    // Изменил: тест создания с некорректной ролью, проверка только статуса 400
+    // Изменил: тест должен проверять реальный сценарий, который вызывает исключение
     @Test
     @WithMockUser(roles = "ADMIN")
     void createUser_InvalidRole() throws Exception {
-        // Добавлено: настройка мока для выброса исключения
-        when(adminService.createUser(any(UserCreationDTO.class)))
-                .thenThrow(new IllegalArgumentException("Некорректная роль: INVALID"));
 
-        // Изменил: убрана проверка тела ответа, оставлена проверка статуса
         mockMvc.perform(post("/api/admin/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"testuser\",\"password\":\"password\",\"role\":\"INVALID\"}"))
+                        .param("username", "testuser")
+                        .param("password", "password")
+                        .param("role", "INVALID_ROLE") // Используем невалидную роль
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isBadRequest());
     }
 
-    // Добавлено: тест создания с пустым запросом
+
+    // Изменил: обновлен для работы с @RequestParam параметрами
     @Test
     @WithMockUser(roles = "ADMIN")
     void createUser_EmptyRequest() throws Exception {
+        // Изменил: тест с пустыми параметрами вместо пустого JSON
         mockMvc.perform(post("/api/admin/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
+                        .param("username", "")
+                        .param("password", "")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isBadRequest());
     }
 
-    // Изменил: проверка $.role.name вместо $.role
+    // Изменил: проверка $.role вместо $.role.name
     @Test
     @WithMockUser(roles = "ADMIN")
     void updateUser_Success() throws Exception {
@@ -137,7 +141,7 @@ public class AdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.role.name").value("USER"));
+                .andExpect(jsonPath("$.role").value("USER")); // Изменил: убрал .name
     }
 
     // Добавлено: тест обновления несуществующего пользователя
