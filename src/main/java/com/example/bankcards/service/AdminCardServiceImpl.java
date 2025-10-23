@@ -1,5 +1,4 @@
 package com.example.bankcards.service;
-
 import com.example.bankcards.dto.CardCreationDTO;
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.entity.Card;
@@ -18,7 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 @Service
 public class AdminCardServiceImpl implements AdminCardService {
     private static final Logger logger = LoggerFactory.getLogger(AdminCardServiceImpl.class);
@@ -27,7 +25,6 @@ public class AdminCardServiceImpl implements AdminCardService {
     private final CardFactory cardFactory;
     private final CardMapper cardMapper;
     private final SecurityUtil securityUtil;
-
     public AdminCardServiceImpl(CardRepository cardRepository, UserRepository userRepository,
                                 CardFactory cardFactory, CardMapper cardMapper, SecurityUtil securityUtil) {
         this.cardRepository = cardRepository;
@@ -36,7 +33,6 @@ public class AdminCardServiceImpl implements AdminCardService {
         this.cardMapper = cardMapper;
         this.securityUtil = securityUtil;
     }
-
     @Override
     public CardDTO createCard(Long userId, CardCreationDTO cardCreationDTO) {
         securityUtil.validateAdminAccess();
@@ -58,7 +54,6 @@ public class AdminCardServiceImpl implements AdminCardService {
                 adminUsername, userId, savedCard.getId());
         return cardMapper.toDto(savedCard);
     }
-
     @Override
     public Page<CardDTO> getAllCards(Pageable pageable) {
         securityUtil.validateAdminAccess();
@@ -68,7 +63,6 @@ public class AdminCardServiceImpl implements AdminCardService {
         logger.info("Администратор {} получил {} карт", adminUsername, cards.getTotalElements());
         return cards.map(cardMapper::toDto);
     }
-
     @Override
     @Transactional
     public CardDTO blockCard(Long cardId) {
@@ -103,7 +97,6 @@ public class AdminCardServiceImpl implements AdminCardService {
             return cardMapper.toDto(card);
         }
     }
-
     @Override
     @Transactional
     public CardDTO activateCard(Long cardId) {
@@ -136,7 +129,6 @@ public class AdminCardServiceImpl implements AdminCardService {
             return cardMapper.toDto(card);
         }
     }
-
     @Override
     public void deleteCard(Long cardId) {
         securityUtil.validateAdminAccess();

@@ -10,18 +10,10 @@
 //import org.slf4j.LoggerFactory;
 //
 ///**
-// * Тестовый набор для запуска всех тестов с единым контекстом
-// использован SpringBootTest вместо Suite для полной загрузки контекста
-// */
 //@SpringBootTest
 //@ActiveProfiles("test")
 //@Suite
 //@SelectClasses({AuthControllerTest.class, AdminControllerTest.class})
 //public class TestSuite {
-//    private static final Logger logger = LoggerFactory.getLogger(TestSuite.class);
 //
-//    // Добавлено: отладочный вывод при запуске набора тестов
-//    static {
-//        logger.info("Запуск тестового набора TestSuite с SpringBootTest");
-//    }
 //}

@@ -1,5 +1,4 @@
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.LoginRequestDTO;
 import com.example.bankcards.dto.TokenResponseDTO;
 import com.example.bankcards.service.AuthService;
@@ -14,13 +13,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 /**
  * Тесты для AuthController
  * Изменил: добавлены тесты для неверного логина, пароля и пустого запроса
@@ -28,20 +25,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(AuthController.class)
 @ContextConfiguration(classes = {AuthController.class, AuthService.class})
 public class AuthControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
-
     @MockitoBean
     private AuthService authService;
-
     @Autowired
     private WebApplicationContext webApplicationContext;
-
     private LoginRequestDTO loginRequestDTO;
     private TokenResponseDTO tokenResponseDTO;
-
-    // Добавлено: настройка MockMvc и тестовых данных
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
@@ -53,8 +44,6 @@ public class AuthControllerTest {
         tokenResponseDTO.setUsername("testuser");
         tokenResponseDTO.setRole("ROLE_USER");
     }
-
-    // Добавлено: тест успешного логина
     @Test
     void login_Success() throws Exception {
         when(authService.authenticate(any(LoginRequestDTO.class))).thenReturn(tokenResponseDTO);
@@ -66,8 +55,6 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.username").value("testuser"))
                 .andExpect(jsonPath("$.role").value("ROLE_USER"));
     }
-
-    // Добавлено: тест неверного логина
     @Test
     void login_InvalidUsername() throws Exception {
         when(authService.authenticate(any(LoginRequestDTO.class)))
@@ -78,8 +65,6 @@ public class AuthControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.ошибка").value("Неверное имя пользователя или пароль"));
     }
-
-    // Добавлено: тест неверного пароля
     @Test
     void login_InvalidPassword() throws Exception {
         when(authService.authenticate(any(LoginRequestDTO.class)))
@@ -90,8 +75,6 @@ public class AuthControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.ошибка").value("Неверное имя пользователя или пароль"));
     }
-
-    // Добавлено: тест пустого запроса
     @Test
     void login_EmptyRequest() throws Exception {
         mockMvc.perform(post("/api/auth/login")

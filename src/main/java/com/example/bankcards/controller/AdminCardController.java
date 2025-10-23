@@ -1,11 +1,9 @@
-// AdminCardController.java - добавляю маскирование
 package com.example.bankcards.controller;
-
 import com.example.bankcards.dto.CardCreationDTO;
 import com.example.bankcards.dto.CardDTO;
 import com.example.bankcards.dto.PageResponse;
 import com.example.bankcards.service.AdminCardService;
-import com.example.bankcards.util.CardMaskUtil; // добавил: импорт утилиты маскирования
+import com.example.bankcards.util.CardMaskUtil; 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,7 +20,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/admin/cards")
 @PreAuthorize("hasRole('ADMIN')")
@@ -33,7 +30,6 @@ public class AdminCardController {
     public AdminCardController(AdminCardService adminCardService) {
         this.adminCardService = adminCardService;
     }
-
     @PostMapping("/create/{userId}")
     @Operation(
             summary = "Создание карты для пользователя",
@@ -42,7 +38,6 @@ public class AdminCardController {
     public ResponseEntity<CardDTO> createCard(
             @Parameter(description = "ID пользователя", required = true, example = "1")
             @PathVariable @Positive(message = "ID пользователя должен быть положительным") Long userId,
-
             @Parameter(
                     description = "Имя владельца карты (только латинские буквы, формат: NAME SURNAME)",
                     required = true,
@@ -52,19 +47,13 @@ public class AdminCardController {
             @Size(max = 50, message = "Имя владельца не должно превышать 50 символов")
             @Pattern(regexp = "^[A-Za-z]+\\s[A-Za-z]+$", message = "Имя владельца должно состоять из двух слов на латинице")
             String name) {
-
         logger.info("Получен запрос на создание карты для пользователя с ID: {}, имя: {}", userId, name);
-
-        // Создаем CardCreationDTO из параметра
         CardCreationDTO cardCreationDTO = new CardCreationDTO(name);
         CardDTO createdCard = adminCardService.createCard(userId, cardCreationDTO);
-
-        // Маскируем номер карты перед возвратом
         createdCard.setNumber(CardMaskUtil.maskCardNumber(createdCard.getNumber()));
         logger.info("Карта успешно создана для пользователя с ID: {}, ID карты: {}", userId, createdCard.getId());
         return ResponseEntity.status(201).body(createdCard);
     }
-
     @GetMapping
     @Operation(summary = "Получение всех карт", description = "Возвращает список всех карт с пагинацией и сортировкой")
     public ResponseEntity<PageResponse<CardDTO>> getAllCards(
@@ -74,36 +63,30 @@ public class AdminCardController {
         logger.info("Получен запрос на просмотр всех карт: page={}, size={}, sortBy={}", page, size, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
         Page<CardDTO> cards = adminCardService.getAllCards(pageable);
-        // добавил: Маскируем номера всех карт в списке
         cards.getContent().forEach(card ->
                 card.setNumber(CardMaskUtil.maskCardNumber(card.getNumber())));
         PageResponse<CardDTO> response = new PageResponse<>(cards);
         logger.info("Возвращено {} карт", cards.getTotalElements());
         return ResponseEntity.ok(response);
     }
-
     @PutMapping("/activate/{cardId}")
     @Operation(summary = "Активация карты", description = "Активирует карту по её ID")
     public ResponseEntity<CardDTO> activateCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на активацию карты с ID: {}", cardId);
         CardDTO activatedCard = adminCardService.activateCard(cardId);
-        // добавил: Маскируем номер карты перед возвратом
         activatedCard.setNumber(CardMaskUtil.maskCardNumber(activatedCard.getNumber()));
         logger.info("Карта с ID: {} успешно активирована", cardId);
         return ResponseEntity.ok(activatedCard);
     }
-
     @PutMapping("/block/{cardId}")
     @Operation(summary = "Блокировка карты", description = "Блокирует карту по её ID")
     public ResponseEntity<CardDTO> blockCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {
         logger.info("Получен запрос на блокировку карты с ID: {}", cardId);
         CardDTO blockedCard = adminCardService.blockCard(cardId);
-        // добавил: Маскируем номер карты перед возвратом
         blockedCard.setNumber(CardMaskUtil.maskCardNumber(blockedCard.getNumber()));
         logger.info("Карта с ID: {} успешно заблокирована", cardId);
         return ResponseEntity.ok(blockedCard);
     }
-
     @DeleteMapping("/{cardId}")
     @Operation(summary = "Удаление карты", description = "Удаляет карту по её ID")
     public ResponseEntity<Map<String, String>> deleteCard(@PathVariable @Positive(message = "ID карты должен быть положительным") Long cardId) {

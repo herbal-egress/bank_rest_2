@@ -1,29 +1,23 @@
-// User.java - исправленный
 package com.example.bankcards.entity;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
-
 @Entity
 @Table(name = "users", schema = "bankrest")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // изменил: удалил @Convert(disableConversion = true)
-
+    private Long id; 
     @NotNull
     @Size(min = 3, max = 50, message = "Имя пользователя должно быть от 3 до 50 символов")
     @Column(name = "username", nullable = false, unique = true)
-    private String username; // изменил: удалил @Convert(disableConversion = true)
-
+    private String username; 
     @NotNull
     @Size(min = 3, max = 100, message = "Пароль должен быть от 3 до 100 символов")
     @Column(name = "password", nullable = false)
     private String password;
-
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
@@ -31,14 +25,9 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles = new HashSet<>(); // изменил: удалил @Convert(disableConversion = true)
-
+    private Set<Role> roles = new HashSet<>(); 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<Card> cards = new HashSet<>(); // добавил: связь с картами
-
-
-
-
+    private Set<Card> cards = new HashSet<>(); 
     public User() {
     }
     public User(String username, String password, Set<Role> roles) {
