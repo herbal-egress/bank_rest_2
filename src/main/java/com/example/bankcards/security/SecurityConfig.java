@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .ignoringRequestMatchers("/swagger-ui/**", "/v3/api-docs/**",
-                                "/api/user/**", "/api/auth/**", "/api/admin/**")
+                                "/api/auth/**")
                 )
                 .headers(headers -> headers
                         .addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"))
