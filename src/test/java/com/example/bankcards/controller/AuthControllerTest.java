@@ -111,14 +111,14 @@ public class AuthControllerTest {
     void login_EmptyRequest() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}")) // изменил: без CSRF, так как /api/auth/** исключён в SecurityConfig
+                        .content("{}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.username").value("Имя пользователя обязательно"))
-                .andExpect(jsonPath("$.password").value("Пароль обязателен"));
-        verify(authService, never()).authenticate(any(LoginRequestDTO.class)); // добавил: verify отсутствия вызова сервиса
-        verify(jwtUtil, never()).extractUsername(any(String.class)); // добавил: verify отсутствия вызова JwtUtil
-        verify(jwtUtil, never()).validateToken(any(String.class), any()); // добавил: verify отсутствия вызова JwtUtil
-        verify(userDetailsService, never()).loadUserByUsername(any()); // добавил: verify отсутствия вызова UserDetailsService
+                .andExpect(jsonPath("$.username").value("Имя пользователя не может быть пустым")) // изменил: соответствие сообщению @NotBlank
+                .andExpect(jsonPath("$.password").value("Пароль не может быть пустым")); // изменил: соответствие сообщению @NotBlank
+        verify(authService, never()).authenticate(any(LoginRequestDTO.class));
+        verify(jwtUtil, never()).extractUsername(any(String.class));
+        verify(jwtUtil, never()).validateToken(any(String.class), any());
+        verify(userDetailsService, never()).loadUserByUsername(any());
     }
 
     @Test
