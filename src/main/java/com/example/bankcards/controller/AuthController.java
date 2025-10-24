@@ -1,6 +1,7 @@
 package com.example.bankcards.controller;
 import com.example.bankcards.dto.LoginRequestDTO;
 import com.example.bankcards.dto.TokenResponseDTO;
+import com.example.bankcards.exception.JwtExpiredException;
 import com.example.bankcards.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
@@ -31,6 +32,9 @@ public class AuthController {
             TokenResponseDTO tokenResponse = authService.authenticate(loginRequest);
             logger.info("Авторизация успешна для пользователя: {}", loginRequest.getUsername());
             return ResponseEntity.ok(tokenResponse);
+        } catch (JwtExpiredException e) {
+            logger.warn("JWT токен истек для пользователя {}: {}", loginRequest.getUsername(), e.getMessage());
+            throw e; // добавил: передача JwtExpiredException в GlobalExceptionHandler
         } catch (Exception e) {
             logger.error("Ошибка авторизации для пользователя {}: {}", loginRequest.getUsername(), e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("ошибка", "Неверное имя пользователя или пароль"));
