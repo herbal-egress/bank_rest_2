@@ -1,40 +1,64 @@
-//package com.example.bankcards.controller;
-//
-//import com.example.bankcards.dto.TransactionDTO;
-//import com.example.bankcards.service.TransactionService;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-//import org.springframework.boot.test.mock.mockito.MockBean;
-//import org.springframework.http.MediaType;
-//import org.springframework.test.context.bean.override.mockito.MockitoBean;
-//import org.springframework.test.web.servlet.MockMvc;
-//import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-//import org.springframework.web.context.WebApplicationContext;
-//
-//import java.math.BigDecimal;
-//import java.util.Collections;
-//
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.*;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-//
-//@WebMvcTest(TransactionController.class)
-//class TransactionControllerTest {
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//}
+package com.example.bankcards.controller;
+
+import com.example.bankcards.dto.TransactionDTO;
+import com.example.bankcards.service.TransactionService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.math.BigDecimal;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class TransactionControllerTest {
+
+    @Mock
+    private TransactionService transactionService;
+
+    @InjectMocks
+    private TransactionController transactionController;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void transfer_ValidRequest_ReturnsTransactionDTO() {
+        TransactionDTO dto = new TransactionDTO(1L, 2L, BigDecimal.valueOf(100));
+        when(transactionService.transfer(any(TransactionDTO.class))).thenReturn(dto);
+
+        ResponseEntity<TransactionDTO> response = transactionController.transfer(1L, 2L, BigDecimal.valueOf(100));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(dto, response.getBody());
+        verify(transactionService, times(1)).transfer(any(TransactionDTO.class));
+    }
+
+    @Test
+    void transfer_SameCardIds_ThrowsException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                transactionController.transfer(1L, 1L, BigDecimal.valueOf(50))
+        );
+    }
+
+    @Test
+    void transfer_NegativeAmount_ThrowsException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                transactionController.transfer(1L, 2L, BigDecimal.valueOf(-10))
+        );
+    }
+
+    @Test
+    void transfer_ZeroAmount_ThrowsException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                transactionController.transfer(1L, 2L, BigDecimal.ZERO)
+        );
+    }
+}
