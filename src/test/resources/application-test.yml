@@ -13,7 +13,7 @@ spring:
     enabled: false
   security:
     csrf:
-      enabled: false
+      enabled: false # не включать, иначе упадут тесты
 jwt:
   secret: test-secret
   expiration: 3600000

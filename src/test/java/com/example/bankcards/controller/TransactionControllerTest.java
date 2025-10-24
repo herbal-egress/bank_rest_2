@@ -1,55 +1,51 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.TransactionDTO;
+import com.example.bankcards.security.UserDetailsServiceImpl;
 import com.example.bankcards.service.TransactionService;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.bankcards.util.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 import java.math.BigDecimal;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Тесты для TransactionController: покрывает transfer.
- * Сценарии: success, same cards, negative/zero amount, unauthorized.
- * Verify: вызов transfer.
- * изменил: на WebMvcTest для REST.
+ * Сценарии: успех, одинаковые карты, отрицательная/нулевая сумма, unauthorized, несуществующие карты, неактивные карты, недостаток средств, валидация.
+ * Verify: вызов метода transfer.
+ * добавил: @MockBean для JwtUtil, UserDetailsServiceImpl, UserRepository.
  */
 @WebMvcTest(TransactionController.class)
-@ContextConfiguration(classes = {TransactionController.class})
 @ExtendWith(MockitoExtension.class)
 public class TransactionControllerTest {
-    private MockMvc mockMvc;
-    @Mock
-    private TransactionService transactionService;
-    @InjectMocks
-    private TransactionController transactionController;
     @Autowired
-    private WebApplicationContext webApplicationContext;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-    }
+    private MockMvc mockMvc;
+    @MockitoBean
+    private TransactionService transactionService;
+    @MockitoBean // добавил: мок для JwtUtil
+    private JwtUtil jwtUtil;
+    @MockitoBean // добавил: мок для UserDetailsServiceImpl
+    private UserDetailsServiceImpl userDetailsService;
+    @MockitoBean // добавил: мок для UserRepository (предполагаемый)
+    private com.example.bankcards.repository.UserRepository userRepository;
 
     @Test
     @WithMockUser(roles = "USER")
     void transfer_ValidRequest_Success() throws Exception {
+        // добавил: настройка мока для успешного ответа
         TransactionDTO dto = new TransactionDTO(1L, 2L, BigDecimal.valueOf(100));
         when(transactionService.transfer(any(TransactionDTO.class))).thenReturn(dto);
         mockMvc.perform(post("/api/user/transactions/transfer")
@@ -57,20 +53,26 @@ public class TransactionControllerTest {
                         .param("toCardId", "2")
                         .param("amount", "100")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isOk());
-        verify(transactionService, times(1)).transfer(any(TransactionDTO.class));  // добавил: verify
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fromCardId").value(1L))
+                .andExpect(jsonPath("$.toCardId").value(2L))
+                .andExpect(jsonPath("$.amount").value(100));
+        verify(transactionService, times(1)).transfer(any(TransactionDTO.class));
     }
 
     @Test
     @WithMockUser(roles = "USER")
     void transfer_SameCardIds_BadRequest() throws Exception {
+        when(transactionService.transfer(any(TransactionDTO.class)))
+                .thenThrow(new IllegalArgumentException("Нельзя переводить на ту же карту"));
         mockMvc.perform(post("/api/user/transactions/transfer")
                         .param("fromCardId", "1")
                         .param("toCardId", "1")
                         .param("amount", "50")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isBadRequest());  // изменил: assume controller throws IllegalArg
-        verify(transactionService, never()).transfer(any());  // добавил: verify no call
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.ошибка").value("Нельзя переводить на ту же карту"));
+        verify(transactionService, times(1)).transfer(any());
     }
 
     @Test
@@ -81,8 +83,9 @@ public class TransactionControllerTest {
                         .param("toCardId", "2")
                         .param("amount", "-10")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isBadRequest());
-        verify(transactionService, never()).transfer(any());  // добавил: verify
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.amount").value("Сумма должна быть больше 0"));
+        verify(transactionService, never()).transfer(any());
     }
 
     @Test
@@ -93,30 +96,106 @@ public class TransactionControllerTest {
                         .param("toCardId", "2")
                         .param("amount", "0")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isBadRequest());
-        verify(transactionService, never()).transfer(any());  // добавил: verify
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.amount").value("Сумма должна быть больше 0"));
+        verify(transactionService, never()).transfer(any());
     }
 
-    // добавил: unauthorized
     @Test
-    @WithMockUser(roles = "ADMIN")  // wrong role
+    @WithMockUser(roles = "ADMIN")
     void transfer_Unauthorized() throws Exception {
         mockMvc.perform(post("/api/user/transactions/transfer")
                         .param("fromCardId", "1")
                         .param("toCardId", "2")
                         .param("amount", "100")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isForbidden());
-        verify(transactionService, never()).transfer(any());  // добавил: verify
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.ошибка").value("Доступ запрещен"));
+        verify(transactionService, never()).transfer(any());
     }
 
-    // добавил: invalid params (missing)
     @Test
     @WithMockUser(roles = "USER")
     void transfer_MissingParams_BadRequest() throws Exception {
         mockMvc.perform(post("/api/user/transactions/transfer")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
-                .andExpect(status().isBadRequest());
-        verify(transactionService, never()).transfer(any());  // добавил: verify
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fromCardId").value("ID карты-отправителя обязателен"))
+                .andExpect(jsonPath("$.toCardId").value("ID карты-получателя обязателен"))
+                .andExpect(jsonPath("$.amount").value("Сумма обязательна"));
+        verify(transactionService, never()).transfer(any());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void transfer_CardNotFound_BadRequest() throws Exception {
+        when(transactionService.transfer(any(TransactionDTO.class)))
+                .thenThrow(new IllegalArgumentException("Карта-отправитель не найдена или не принадлежит вам"));
+        mockMvc.perform(post("/api/user/transactions/transfer")
+                        .param("fromCardId", "999")
+                        .param("toCardId", "2")
+                        .param("amount", "100")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.ошибка").value("Карта-отправитель не найдена или не принадлежит вам"));
+        verify(transactionService, times(1)).transfer(any());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void transfer_InsufficientFunds_BadRequest() throws Exception {
+        when(transactionService.transfer(any(TransactionDTO.class)))
+                .thenThrow(new IllegalArgumentException("Недостаточно средств на карте-отправителе"));
+        mockMvc.perform(post("/api/user/transactions/transfer")
+                        .param("fromCardId", "1")
+                        .param("toCardId", "2")
+                        .param("amount", "1000")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.ошибка").value("Недостаточно средств на карте-отправителе"));
+        verify(transactionService, times(1)).transfer(any());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void transfer_InactiveCard_BadRequest() throws Exception {
+        when(transactionService.transfer(any(TransactionDTO.class)))
+                .thenThrow(new IllegalArgumentException("Одна из карт не активна"));
+        mockMvc.perform(post("/api/user/transactions/transfer")
+                        .param("fromCardId", "1")
+                        .param("toCardId", "2")
+                        .param("amount", "100")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.ошибка").value("Одна из карт не активна"));
+        verify(transactionService, times(1)).transfer(any());
+    }
+
+    // добавил: тест для JwtAuthenticationException
+    @Test
+    void transfer_JwtAuthenticationException_Unauthorized() throws Exception {
+        // @WithMockUser не используется, чтобы симулировать отсутствие токена
+        mockMvc.perform(post("/api/user/transactions/transfer")
+                        .param("fromCardId", "1")
+                        .param("toCardId", "2")
+                        .param("amount", "100")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.ошибка").value("Ошибка аутентификации"));
+        verify(transactionService, never()).transfer(any());
+    }
+
+    // добавил: тест для JwtExpiredException
+    @Test
+    void transfer_JwtExpiredException_Unauthorized() throws Exception {
+        // @WithMockUser не используется, чтобы симулировать истёкший токен
+        mockMvc.perform(post("/api/user/transactions/transfer")
+                        .param("fromCardId", "1")
+                        .param("toCardId", "2")
+                        .param("amount", "100")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.ошибка").value("Токен истек"));
+        verify(transactionService, never()).transfer(any());
     }
 }
