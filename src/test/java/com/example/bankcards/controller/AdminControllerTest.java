@@ -4,19 +4,20 @@ import com.example.bankcards.dto.UserCreationDTO;
 import com.example.bankcards.dto.UserResponseDTO;
 import com.example.bankcards.entity.Role;
 import com.example.bankcards.exception.UserNotFoundException;
-import com.example.bankcards.security.JwtAuthenticationFilter; // добавил: мок фильтра
-import com.example.bankcards.security.UserDetailsServiceImpl; // добавил: мок UserDetailsServiceImpl
+import com.example.bankcards.security.JwtAuthenticationFilter;
+import com.example.bankcards.security.UserDetailsServiceImpl;
 import com.example.bankcards.service.AdminService;
-import com.example.bankcards.util.JwtUtil; // добавил: мок JwtUtil
+import com.example.bankcards.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc; // добавил: отключение фильтров
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // добавил: включение method security для проверки @PreAuthorize
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
@@ -29,18 +30,9 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Тесты для AdminController: покрывает getAllUsers, createUser, updateUser, deleteUser.
- * Сценарии: успех, доступ запрещён, несуществующий пользователь, пустой запрос, валидация.
- *
- * изменил:
- * - добавил @AutoConfigureMockMvc(addFilters = false) чтобы отключить исполнение фильтров (JwtAuthenticationFilter не будет выполняться),
- *   но при этом сам бин фильтра всё равно создаётся Spring'ом — поэтому ниже добавлены @MockBean для фильтра и зависимостей.
- * - добавил @MockBean JwtAuthenticationFilter, JwtUtil, UserDetailsServiceImpl, чтобы контекст успешно загружался под WebMvcTest.
- * - оставил единственным реальным мок-сервисом AdminService.
- */
 @WebMvcTest(value = AdminController.class)
-@AutoConfigureMockMvc(addFilters = false) // добавил: отключает исполнение фильтров (но не их создание)
+@AutoConfigureMockMvc(addFilters = false)
+@EnableMethodSecurity // изменил: включение проверки @PreAuthorize для теста createUser_Forbidden
 @ExtendWith(MockitoExtension.class)
 public class AdminControllerTest {
 
@@ -48,18 +40,16 @@ public class AdminControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private AdminService adminService; // единственный сервис, который тестируем
+    private AdminService adminService;
 
-    // ---- Ниже добавленные mock-beans для безопасного создания ApplicationContext ----
     @MockBean
-    private JwtAuthenticationFilter jwtAuthenticationFilter; // добавил: чтобы SecurityConfig получил бин фильтра
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
     @MockBean
-    private JwtUtil jwtUtil; // добавил: чтобы бин JwtUtil был доступен (из-за зависимостей фильтра/проч.)
+    private JwtUtil jwtUtil;
     @MockBean
-    private UserDetailsServiceImpl userDetailsService; // добавил: чтобы автоконфиг Security нашёл UserDetailsService
+    private UserDetailsServiceImpl userDetailsService;
     @MockBean
-    private com.example.bankcards.repository.UserRepository userRepository; // оставил: если автоконфиг подхватит репозиторий
-    // ---------------------------------------------------------------------------------
+    private com.example.bankcards.repository.UserRepository userRepository;
 
     private UserCreationDTO userCreationDTO;
     private UserResponseDTO userResponseDTO;
@@ -73,8 +63,6 @@ public class AdminControllerTest {
         userResponseDTO.setUsername("testuser");
         userResponseDTO.setRole(Role.RoleName.USER);
     }
-
-    // ---------- GET /api/admin/users ----------
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -100,8 +88,6 @@ public class AdminControllerTest {
 
         verify(adminService, never()).getAllUsers();
     }
-
-    // ---------- POST /api/admin/users ----------
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -143,19 +129,14 @@ public class AdminControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void createUser_EmptyRequest_BadRequest() throws Exception {
-        // Причина: при полном отсутствии обязательного @RequestParam Spring выбрасывает
-        // MissingServletRequestParameterException и GlobalExceptionHandler формирует ответ:
-        // {"ошибка":"Отсутствует обязательный параметр запроса: username"}
         mockMvc.perform(post("/api/admin/users")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().isBadRequest())
-                // изменил: теперь ожидаем формат, который возвращает GlobalExceptionHandler
                 .andExpect(jsonPath("$.ошибка").value("Отсутствует обязательный параметр запроса: username"));
 
         verify(adminService, never()).createUser(any(UserCreationDTO.class));
     }
-
 
     @Test
     @WithMockUser(roles = "USER")
@@ -170,8 +151,6 @@ public class AdminControllerTest {
 
         verify(adminService, never()).createUser(any(UserCreationDTO.class));
     }
-
-    // ---------- PUT /api/admin/users/{id} ----------
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -209,8 +188,6 @@ public class AdminControllerTest {
 
         verify(adminService, times(1)).updateUser(eq(999L), any(UserCreationDTO.class));
     }
-
-    // ---------- DELETE /api/admin/users/{id} ----------
 
     @Test
     @WithMockUser(roles = "ADMIN")
