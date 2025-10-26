@@ -17,11 +17,11 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
 @Configuration
-@EnableMethodSecurity  // добавил: Включение метод-уровневой security (pre/post auth, OWASP: least privilege).
-@EnableWebSecurity  // добавил: Включение web security (Spring best practice для custom config).
+@EnableMethodSecurity
+@EnableWebSecurity
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserDetailsService userDetailsService;  // изменил: Инжектируемый UserDetailsService (UserDetailsServiceImpl) для provider.
+    private final UserDetailsService userDetailsService;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsService userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -32,42 +32,42 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())  // добавил: CSRF repo для API (OWASP: CSRF protection).
-                        .ignoringRequestMatchers("/swagger-ui/**", "/v3/api-docs/**",
-                                "/api/auth/**")  // добавил: Ignore CSRF для auth и docs (stateless API).
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        // Изменил: добавил /api/admin/** в исключения CSRF
+                        .ignoringRequestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/auth/**", "/api/admin/**")
                 )
                 .headers(headers -> headers
-                        .addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"))  // добавил: CSP header (OWASP: XSS prevention).
-                        .addHeaderWriter(new StaticHeadersWriter("X-Frame-Options", "DENY"))  // добавил: Anti-clickjacking (OWASP).
-                        .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))  // добавил: MIME sniffing prevention (OWASP).
+                        .addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"))
+                        .addHeaderWriter(new StaticHeadersWriter("X-Frame-Options", "DENY"))
+                        .addHeaderWriter(new StaticHeadersWriter("X-Content-Type-Options", "nosniff"))
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**",
-                                "/swagger-ui.html", "/webjars/**", "/api-docs/**").permitAll()  // добавил: Permit all для auth и docs (public endpoints).
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")  // добавил: Role-based access (OWASP: RBAC).
+                                "/swagger-ui.html", "/webjars/**", "/api-docs/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasRole("USER")
-                        .anyRequest().authenticated()  // добавил: Authenticate all other (least privilege).
+                        .anyRequest().authenticated()
                 )
-                .authenticationProvider(authenticationProvider())  // изменил: Используем custom provider (DAO с UserDetailsService).
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);  // добавил: JWT filter перед standard (stateless auth).
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();  // изменил: Создание DAO provider без encoder в конструкторе (Spring best practice).
-        authProvider.setUserDetailsService(userDetailsService);  // добавил: Установка UserDetailsService (фикс ошибки "A UserDetailsService must be set"; SOLID: SRP – explicit config).
-        authProvider.setPasswordEncoder(passwordEncoder());  // изменил: Установка encoder (BCrypt для secure hashing, OWASP: password storage).
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();  // добавил: BCrypt с default strength (OWASP: strong hashing).
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();  // добавил: Default manager (использует provider выше).
+        return authConfig.getAuthenticationManager();
     }
 }
