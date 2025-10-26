@@ -12,14 +12,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version> <!-- изменил: стабильная версия для Java 17, управляет зависимостями -->
+        <version>3.3.5</version>
         <relativePath/>
     </parent>
     <properties>
         <java.version>17</java.version>
-        <org.mapstruct.version>1.6.0</org.mapstruct.version> <!-- обновлена для Spring Boot 3.3 -->
-        <lombok.version>1.18.34</lombok.version> <!-- добавлена для управления версией Lombok -->
-        <jjwt.version>0.12.6</jjwt.version> <!-- добавлена для управления версиями JJWT -->
+        <org.mapstruct.version>1.5.5.Final</org.mapstruct.version> <!-- изменил: версия, управляемая parent для совместимости -->
+        <lombok.version>1.18.34</lombok.version>
+        <jjwt.version>0.12.6</jjwt.version>
     </properties>
     <dependencies>
         <dependency>
@@ -47,8 +47,7 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>4.29.2</version> <!-- обновлена для Spring Boot 3.3 -->
-        </dependency>
+        </dependency> <!-- убрал версию, управляется parent (4.25.0) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -57,19 +56,19 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>${jjwt.version}</version> <!-- добавлена версия для устранения ошибки Maven -->
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>${jjwt.version}</version> <!-- добавлена версия для устранения ошибки Maven -->
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version> <!-- обновлена для Spring Boot 3.3 -->
+            <version>2.6.0</version> <!-- обновлена для Spring Boot 3.3, совместима -->
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -96,27 +95,26 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-        </dependency>
+        </dependency> <!-- убрал версию, управляется parent (2.17.2) -->
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.26.3</version> <!-- обновлена для Spring Boot 3.3 -->
-            <scope>test</scope>
+            <scope>test</scope> <!-- убрал версию, управляется parent (3.26.3) -->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope> <!-- включает Mockito 5.11.0, JUnit 5.10.3 -->
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <scope>test</scope>
+            <scope>test</scope> <!-- убрал версию, управляется parent (6.3.1) -->
         </dependency>
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite-api</artifactId>
-            <scope>test</scope> <!-- управляется parent, версия 1.10.3 -->
+            <scope>test</scope> <!-- убрал версию, управляется parent (1.10.3) -->
         </dependency>
     </dependencies>
     <build>
@@ -128,7 +126,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version> <!-- обновлена для Maven 3.9+ -->
+                <version>3.13.0</version>
                 <configuration>
                     <annotationProcessorPaths>
                         <path>

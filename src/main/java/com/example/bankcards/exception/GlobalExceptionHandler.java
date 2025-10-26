@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
+import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import java.util.HashMap;
 import java.util.Map;
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -135,18 +137,20 @@ public class GlobalExceptionHandler {
         log.error("Ошибка валидации параметров (ConstraintViolation): {}", errors);
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<Map<String, String>> handleHandlerMethodValidationException(HandlerMethodValidationException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getParameterValidationResults().forEach(parameterResult -> {
-            String parameterName = parameterResult.getMethodParameter().getParameterName();
-            parameterResult.getResolvableErrors().forEach(error ->
-                    errors.put(parameterName, error.getDefaultMessage())
-            );
-        });
+        for (ParameterValidationResult result : ex.getAllValidationResults()) {
+            String parameterName = result.getMethodParameter().getParameterName();
+            result.getResolvableErrors().forEach(error -> {
+                errors.put(parameterName, error.getDefaultMessage());
+            });
+        }
         log.error("Ошибка валидации параметров метода: {}", errors);
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(MissingServletRequestParameterException.class) // добавил: обработка отсутствующих параметров
     public ResponseEntity<Map<String, String>> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
         log.warn("Отсутствует обязательный параметр: {}", ex.getMessage());

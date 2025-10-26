@@ -12,9 +12,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc; // добавил: для отключения фильтров
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Тесты для AuthController: покрывает login.
  * Сценарии: успех, неверное имя пользователя, неверный пароль, пустой запрос, валидация, JWT ошибки.
  * Verify: вызовы сервиса.
- * изменил: добавлена AutoConfigureMockMvc(addFilters = false) для отключения JwtAuthenticationFilter; удалены excludeFilters, WebApplicationContext, MockMvcBuilders; добавлены @MockitoBean для JwtUtil, UserDetailsServiceImpl, UserRepository; использован thenAnswer для UserDetails.getAuthorities; совместимость с Spring Boot 3.3.5 (Mockito 5.11.0).
+ * изменил: добавлена AutoConfigureMockMvc(addFilters = false) для отключения JwtAuthenticationFilter; удалены excludeFilters, WebApplicationContext, MockMvcBuilders; добавлены @MockBean для JwtUtil, UserDetailsServiceImpl, UserRepository; использован thenAnswer для UserDetails.getAuthorities; совместимость с Spring Boot 3.3.5 (Mockito 5.11.0).
  */
 @WebMvcTest(value = AuthController.class)
 @AutoConfigureMockMvc(addFilters = false) // добавил: отключает все фильтры безопасности, так как /api/auth/** не требует аутентификации
@@ -36,13 +36,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
-    @MockitoBean
+    @MockBean
     private AuthService authService;
-    @MockitoBean
+    @MockBean
     private JwtUtil jwtUtil;
-    @MockitoBean
+    @MockBean
     private UserDetailsServiceImpl userDetailsService;
-    @MockitoBean
+    @MockBean
     private com.example.bankcards.repository.UserRepository userRepository;
     private LoginRequestDTO loginRequestDTO;
     private TokenResponseDTO tokenResponseDTO;
