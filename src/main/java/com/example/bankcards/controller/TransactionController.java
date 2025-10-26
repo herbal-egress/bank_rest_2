@@ -5,13 +5,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/user/transactions")
@@ -25,19 +28,15 @@ public class TransactionController {
     }
     @PostMapping("/transfer")
     @PreAuthorize("hasRole('USER')")
-    @Operation(
-            summary = "Перевод между картами",
-            description = "Выполняет перевод между картами пользователя"
-    )
+    @Operation(summary = "Перевод между картами", description = "Выполняет перевод между картами пользователя")
     public ResponseEntity<TransactionDTO> transfer(
             @Parameter(description = "ID карты-отправления", required = true, example = "1")
             @RequestParam Long fromCardId,
             @Parameter(description = "ID карты-получения", required = true, example = "2")
             @RequestParam Long toCardId,
             @Parameter(description = "Сумма перевода", required = true, example = "100.00")
-            @RequestParam BigDecimal amount) {
-        logger.info("Получен запрос на перевод: с карты id={}, на карту id={}, на сумму={}",
-                fromCardId, toCardId, amount);
+            @RequestParam @DecimalMin(value = "0.01", message = "Сумма должна быть больше 0") BigDecimal amount) {
+        logger.info("Получен запрос на перевод: с карты id={}, на карту id={}, на сумму={}", fromCardId, toCardId, amount);
         TransactionDTO transactionDTO = new TransactionDTO(fromCardId, toCardId, amount);
         TransactionDTO result = transactionService.transfer(transactionDTO);
         logger.info("Перевод осуществлён: с карты id={}, на карту id={}, на сумму={}",

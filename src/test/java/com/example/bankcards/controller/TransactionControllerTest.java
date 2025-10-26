@@ -147,6 +147,7 @@ public class TransactionControllerTest {
                 .andExpect(jsonPath("$.ошибка").value("Недостаточно средств на карте-отправителе"));
         verify(transactionService, times(1)).transfer(any(TransactionDTO.class));
     }
+
     @Test
     @WithMockUser(roles = "USER")
     void transfer_NegativeAmount_BadRequest() throws Exception {
@@ -157,9 +158,10 @@ public class TransactionControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .with(SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.ошибка").value("Сумма должна быть больше 0")); // изменил: ожидание ключа "ошибка" для соответствия GlobalExceptionHandler
-        verify(transactionService, times(1)).transfer(any()); // изменил: сервис вызывается, так как валидация в нём
+                .andExpect(jsonPath("$.amount").value("Сумма должна быть больше 0"));
+        verify(transactionService, never()).transfer(any());
     }
+
     @Test
     @WithMockUser(roles = "USER")
     void transfer_ZeroAmount_BadRequest() throws Exception {
