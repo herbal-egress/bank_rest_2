@@ -116,6 +116,11 @@
             <artifactId>junit-platform-suite-api</artifactId>
             <scope>test</scope> <!-- убрал версию, управляется parent (1.10.3) -->
         </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
