@@ -2,7 +2,7 @@ package com.example.bankcards.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 @Entity
-@Table(name = "roles", schema = "bankrest")
+@Table(name = "roles")
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
