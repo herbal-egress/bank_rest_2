@@ -1,0 +1,598 @@
+openapi: 3.0.3
+info:
+  title: Bank Cards REST API
+  description: API для управления банковскими картами с JWT аутентификацией и ролевым доступом
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+
+tags:
+  - name: Аутентификация
+    description: Эндпоинты аутентификации
+  - name: Администратор. Операции с картами
+    description: только ADMIN
+  - name: Администратор. Операции с пользователями
+    description: CRUD с пользователями
+  - name: Пользователь. Операции с картами
+    description: только USER
+  - name: Пользователь. Перевод средств
+    description: только USER
+
+paths:
+  /api/auth/login:
+    post:
+      tags: [Аутентификация]
+      summary: Аутентификация пользователя
+      description: Возвращает JWT токен для доступа к API
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequestDTO'
+            example:
+              username: "admin"
+              password: "password123"
+      responses:
+        '200':
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponseDTO'
+        '400':
+          description: Ошибки валидации
+        '401':
+          description: Неверные учетные данные
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /api/admin/cards/create/{userId}:
+    post:
+      tags: [Администратор. Операции с картами]
+      summary: Создание карты для пользователя
+      description: Создаёт новую карту для указанного пользователя
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          example: 1
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+            maxLength: 50
+            pattern: "^[A-Za-z]+\\s[A-Za-z]+$"
+          example: "IVAN IVANOV"
+      responses:
+        '201':
+          description: Карта успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+        '400':
+          description: Неверные данные запроса
+        '403':
+          description: Доступ запрещен (требуется роль ADMIN)
+        '404':
+          description: Пользователь не найден
+
+  /api/admin/cards:
+    get:
+      tags: [Администратор. Операции с картами]
+      summary: Получение всех карт
+      description: Возвращает список всех карт с пагинацией и сортировкой
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            default: 10
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9_]+$"
+            default: "id"
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse_CardDTO'
+        '403':
+          description: Доступ запрещен
+
+  /api/admin/cards/activate/{cardId}:
+    put:
+      tags: [Администратор. Операции с картами]
+      summary: Активация карты
+      description: Активирует карту по её ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: Карта успешно активирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Карта не найдена
+
+  /api/admin/cards/block/{cardId}:
+    put:
+      tags: [Администратор. Операции с картами]
+      summary: Блокировка карты
+      description: Блокирует карту по её ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: Карта успешно заблокирована
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Карта не найдена
+
+  /api/admin/cards/{cardId}:
+    delete:
+      tags: [Администратор. Операции с картами]
+      summary: Удаление карты
+      description: Удаляет карту по её ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: Карта успешно удалена
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Карта не найдена
+
+  /api/admin/users:
+    get:
+      tags: [Администратор. Операции с пользователями]
+      summary: Получить список всех пользователей
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponseDTO'
+        '403':
+          description: Доступ запрещен
+
+    post:
+      tags: [Администратор. Операции с пользователями]
+      summary: Создать нового пользователя
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 50
+          example: "ivan_ivanov"
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 100
+          example: "password123"
+        - name: role
+          in: query
+          schema:
+            type: string
+          example: "USER"
+      responses:
+        '200':
+          description: Пользователь успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDTO'
+        '400':
+          description: Неверные данные запроса
+        '403':
+          description: Доступ запрещен
+
+  /api/admin/users/{id}:
+    put:
+      tags: [Администратор. Операции с пользователями]
+      summary: Обновить пользователя по ID
+      description: Обновляет данные пользователя по указанному ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 50
+          example: "IVAN IVANOV"
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+            maxLength: 100
+          example: "newpassword123"
+        - name: role
+          in: query
+          schema:
+            type: string
+          example: "USER"
+      responses:
+        '200':
+          description: Пользователь успешно обновлен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDTO'
+        '400':
+          description: Неверные данные запроса
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Пользователь не найден
+
+    delete:
+      tags: [Администратор. Операции с пользователями]
+      summary: Удалить пользователя по ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Пользователь успешно удален
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '403':
+          description: Доступ запрещен
+        '404':
+          description: Пользователь не найден
+
+  /api/user/cards:
+    get:
+      tags: [Пользователь. Операции с картами]
+      summary: Получение карт пользователя
+      description: Возвращает список карт пользователя с фильтрацией и пагинацией
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+            default: 10
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9_]+$"
+            default: "id"
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageResponse_CardDTO'
+        '401':
+          description: Не авторизован
+
+  /api/user/cards/block/{cardId}:
+    post:
+      tags: [Пользователь. Операции с картами]
+      summary: Запрос на блокировку карты
+      description: Отправляет запрос на блокировку карты по её ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: Запрос на блокировку отправлен
+          content:
+            text/plain:
+              schema:
+                type: string
+        '401':
+          description: Не авторизован
+        '404':
+          description: Карта не найдена
+
+  /api/user/cards/balance/{cardId}:
+    get:
+      tags: [Пользователь. Операции с картами]
+      summary: Получение баланса карты
+      description: Возвращает баланс карты по её ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDTO'
+        '401':
+          description: Не авторизован
+        '404':
+          description: Карта не найдена
+
+  /api/user/transactions/transfer:
+    post:
+      tags: [Пользователь. Перевод средств]
+      summary: Перевод между картами
+      description: Выполняет перевод между картами пользователя
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fromCardId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 1
+        - name: toCardId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 2
+        - name: amount
+          in: query
+          required: true
+          schema:
+            type: number
+            format: double
+            minimum: 0.01
+          example: 100.00
+      responses:
+        '200':
+          description: Перевод успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionDTO'
+        '400':
+          description: Недостаточно средств или неверные данные
+        '401':
+          description: Не авторизован
+        '403':
+          description: Нет доступа к указанным картам
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequestDTO:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          example: "admin"
+        password:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "password123"
+
+    TokenResponseDTO:
+      type: object
+      properties:
+        token:
+          type: string
+        username:
+          type: string
+        role:
+          type: string
+
+    CardDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        number:
+          type: string
+        name:
+          type: string
+          pattern: "^[A-Za-z\\s]+$"
+        expiration:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, BLOCKED, EXPIRED]
+        balance:
+          type: number
+          format: double
+        userId:
+          type: integer
+          format: int64
+
+    PageResponse_CardDTO:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardDTO'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+        first:
+          type: boolean
+        last:
+          type: boolean
+        empty:
+          type: boolean
+
+    UserResponseDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        username:
+          type: string
+          example: "ivan_ivanov"
+        role:
+          type: string
+          enum: [ADMIN, USER]
+
+    TransactionDTO:
+      type: object
+      required: [fromCardId, toCardId, amount]
+      properties:
+        fromCardId:
+          type: integer
+          format: int64
+          example: 1
+        toCardId:
+          type: integer
+          format: int64
+          example: 2
+        amount:
+          type: number
+          format: double
+          minimum: 0.01
+          example: 100.00
+
+security:
+  - bearerAuth: []

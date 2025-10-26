@@ -16,8 +16,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
-@EnableMethodSecurity  // добавил: Включение метод-уровневой security (pre/post auth, OWASP: least privilege).
 @Configuration
+@EnableMethodSecurity  // добавил: Включение метод-уровневой security (pre/post auth, OWASP: least privilege).
 @EnableWebSecurity  // добавил: Включение web security (Spring best practice для custom config).
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
