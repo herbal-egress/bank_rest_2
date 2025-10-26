@@ -1,5 +1,5 @@
 databaseChangeLog:
   - include:
-      file: classpath:db/migration/001_init_schema.sql
+      file: db/migration/001_init_schema.sql  # изменил: Убрал "classpath:" для совместимости с Liquibase CLI на Windows.
   - include:
-      file: classpath:db/migration/002_init_data.sql
+      file: db/migration/002_init_data.sql

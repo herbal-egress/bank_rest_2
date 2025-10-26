@@ -4,6 +4,6 @@
     <option name="sourceModelValue" value="Default" />
     <option name="targetDbValue" value="7acb4ada-5121-4160-9e15-af3eaa902baf" />
     <option name="updateChangeLogPath" value="src/main/resources/db/migration/changelog-master.yml" />
-    <option name="updateDbConnectionName" value="ad44c6e5-f269-45f8-942d-5bdd182e029a__bankrest_bankrest_dev" />
+    <option name="updateDbConnectionName" value="7acb4ada-5121-4160-9e15-af3eaa902baf__bankrest_bankrest" />
   </component>
 </project>
