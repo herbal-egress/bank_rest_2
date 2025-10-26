@@ -8,9 +8,6 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
-  liquibase:
-    change-log: classpath:db/migration/changelog-test.yml
-    enabled: false
   security:
     csrf:
       enabled: false # не включать, иначе упадут тесты
