@@ -1,7 +1,7 @@
--- liquibase formatted sql
--- changeset author:001_init_schema id:1
--- precondition-onFail:CONTINUE
--- precondition-sqlCheck expectedResult:0 SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'bankrest' AND table_name = 'users'
+--liquibase formatted sql
+--changeset author:001_init_schema id:1  -- Исправлено: стандартный формат changeset (добавил дефис, lowercase).
+--precondition-on-fail:CONTINUE  -- Добавил: дефис в 'on-fail', удалил пробел после '--', lowercase.
+--precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'bankrest' AND table_name = 'users'  -- Добавил: дефисы в 'sql-check', lowercase, удалил пробел после '--'.
 CREATE SCHEMA IF NOT EXISTS bankrest;
 -- changeset author:001_init_schema id:2
 SET search_path TO bankrest;
