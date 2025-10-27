@@ -3,6 +3,7 @@ import com.example.bankcards.controller.AdminControllerTest;
 import com.example.bankcards.controller.AuthControllerTest;
 import com.example.bankcards.controller.TransactionControllerTest;
 import com.example.bankcards.controller.UserCardControllerTest;
+import com.example.bankcards.service.AdminCardServiceImplTest;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 /**
@@ -16,7 +17,8 @@ import org.junit.platform.suite.api.Suite;
         AdminControllerTest.class,
         AuthControllerTest.class,
         TransactionControllerTest.class,
-        UserCardControllerTest.class
+        UserCardControllerTest.class,
+        AdminCardServiceImplTest.class
 })
 public class TestSuite {
 }
