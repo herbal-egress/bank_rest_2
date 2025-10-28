@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
 @Entity
-@Table(name = "users")
+@Table(name = "users", schema = "bankrest")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

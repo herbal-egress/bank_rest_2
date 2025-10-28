@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 @Entity
-@Table(name = "transactions")
+@Table(name = "transactions", schema = "bankrest")
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
