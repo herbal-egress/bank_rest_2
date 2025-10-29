@@ -8,10 +8,10 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
-    show-sql: true
+      ddl-auto: update
     properties:
       hibernate:
+        show-sql: true
         default_schema: bankrest
   liquibase:
     change-log: classpath:db/migration/changelog-master.xml
