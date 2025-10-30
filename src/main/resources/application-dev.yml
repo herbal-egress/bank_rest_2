@@ -8,7 +8,6 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     open-in-view: false
-#    hibernate:
     properties:
       hibernate:
         ddl-auto: update
