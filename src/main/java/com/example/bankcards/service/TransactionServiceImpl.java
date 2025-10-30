@@ -31,6 +31,13 @@ public class TransactionServiceImpl implements TransactionService {
         Long fromCardId = transactionDTO.getFromCardId();
         Long toCardId = transactionDTO.getToCardId();
         BigDecimal amount = transactionDTO.getAmount();
+        // === ДОБАВИТЬ ПРОВЕРКУ НА НУЛЬ И ОТРИЦАТЕЛЬНОЕ ===
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            logger.error("Сумма перевода должна быть положительной: {}", amount);
+            throw new IllegalArgumentException("Сумма перевода должна быть больше нуля");
+        }
+        // ===============================================
+
         if (fromCardId.equals(toCardId)) {
             logger.error("Ошибка: перевод на ту же карту, fromCardId={}", fromCardId);
             throw new IllegalArgumentException("Нельзя переводить на ту же карту");
