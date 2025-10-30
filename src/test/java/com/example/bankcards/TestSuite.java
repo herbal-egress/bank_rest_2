@@ -1,11 +1,6 @@
 package com.example.bankcards;
-import com.example.bankcards.controller.AdminControllerTest;
-import com.example.bankcards.controller.AuthControllerTest;
-import com.example.bankcards.controller.TransactionControllerTest;
-import com.example.bankcards.controller.UserCardControllerTest;
-import com.example.bankcards.service.AdminCardServiceImplTest;
-import com.example.bankcards.service.AuthServiceImplTest;
-import com.example.bankcards.service.TransactionServiceImplTest;
+import com.example.bankcards.controller.*;
+import com.example.bankcards.service.*;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
@@ -16,8 +11,11 @@ import org.junit.platform.suite.api.Suite;
         TransactionControllerTest.class,
         UserCardControllerTest.class,
         AdminCardServiceImplTest.class,
+        AdminServiceImplTest.class,
+        AuthServiceImplTest.class,
         TransactionServiceImplTest.class,
-        AuthServiceImplTest.class
+        UserCardServiceImplTest.class,
+
 })
 public class TestSuite {
 }

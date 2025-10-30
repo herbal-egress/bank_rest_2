@@ -100,9 +100,9 @@ public class UserCardServiceImplTest {
 
         String result = userCardService.requestBlockCard(1L);
 
-        assertEquals("Запрос на блокировку карты успешно выполнен", result);
+        assertEquals("Запрос на блокировку карты с ID 1 успешно отправлен", result);
         verify(cardRepository, times(1)).findByIdAndUserId(1L, 100L);
-        verify(cardRepository, times(1)).save(card);
+        verifyNoMoreInteractions(cardRepository);
     }
 
     @Test

@@ -52,14 +52,28 @@ public class UserCardServiceImpl implements UserCardService {
     public String requestBlockCard(Long cardId) {
         Long userId = securityUtil.getCurrentUserId();
         logger.info("Запрос на блокировку карты с ID: {} от пользователя с ID: {}", cardId, userId);
-        Card card = cardRepository.findByIdAndUserId(cardId, userId)
-                .orElseThrow(() -> {
-                    logger.error("Карта с ID {} не найдена для пользователя с ID: {}", cardId, userId);
-                    return new CardNotFoundException("Карта с ID " + cardId + " не найдена для пользователя с ID " + userId);
-                });
-        logger.info("Запрос на блокировку карты с ID {} успешно создан", cardId);
-        return "Запрос на блокировку карты с ID " + cardId + " успешно отправлен";
+
+        try {
+            Card card = cardRepository.findByIdAndUserId(cardId, userId)
+                    .orElseThrow(() -> {
+                        logger.error("Карта с ID {} не найдена для пользователя с ID: {}", cardId, userId);
+                        return new CardNotFoundException("Карта с ID " + cardId + " не найдена для пользователя с ID " + userId);
+                    });
+
+            logger.info("Запрос на блокировку карты с ID {} успешно создан", cardId);
+            return "Запрос на блокировку карты с ID " + cardId + " успешно отправлен";
+
+        } catch (CardNotFoundException e) {
+            // логируем конкретное бизнес-исключение
+            throw e;
+        } catch (Exception e) {
+            // перехватываем все непредвиденные ошибки
+            logger.error("Неожиданная ошибка при обработке запроса на блокировку карты ID {}: {}", cardId, e.getMessage(), e);
+            throw new BankCardsException("Произошла непредвиденная ошибка при блокировке карты", e);
+        }
     }
+
+
     @Override
     public CardDTO getCardBalance(Long cardId) { 
         Long userId = securityUtil.getCurrentUserId();

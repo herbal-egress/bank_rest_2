@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -77,15 +78,15 @@ public class AuthControllerTest {
 
     @Test
     void login_InvalidUsername() throws Exception {
-        // добавил: настройка мока для исключения
+        // изменил: удалил `{}` после new AuthenticationException() — это создавало анонимный подкласс `AuthControllerTest$1`, который не ловился GlobalExceptionHandler как `AuthenticationException`; теперь стандартный класс, возвращает 401 с "Неверное имя пользователя или пароль"
         when(authService.authenticate(any(LoginRequestDTO.class)))
-                .thenThrow(new AuthenticationException("Bad credentials") {});
+                .thenThrow(new BadCredentialsException("Bad credentials") {});
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"wronguser\",\"password\":\"password\"}"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.ошибка").value("Неверное имя пользователя или пароль"));
-        verify(authService, times(1)).authenticate(any(LoginRequestDTO.class)); // добавил: verify
+        verify(authService, times(1)).authenticate(any(LoginRequestDTO.class));
         verify(jwtUtil, never()).extractUsername(any(String.class));
         verify(jwtUtil, never()).validateToken(any(String.class), any());
         verify(userDetailsService, never()).loadUserByUsername(any());
@@ -95,7 +96,7 @@ public class AuthControllerTest {
     void login_InvalidPassword() throws Exception {
         // добавил: настройка мока для исключения
         when(authService.authenticate(any(LoginRequestDTO.class)))
-                .thenThrow(new AuthenticationException("Bad credentials") {});
+                .thenThrow(new BadCredentialsException("Bad credentials") {});
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"username\":\"testuser\",\"password\":\"wrongpassword\"}"))

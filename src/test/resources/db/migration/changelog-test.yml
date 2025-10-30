@@ -1,7 +1,7 @@
-databaseChangeLog:
-  - include:
-      file: db/migration/001_init_test_schema.sql
-      relativeToChangelogFile: true
-  - include:
-      file: db/migration/002_init_test_data.sql
-      relativeToChangelogFile: true
+#databaseChangeLog:
+#  - include:
+#      file: db/migration/001_init_test_schema.sql
+#      relativeToChangelogFile: true
+#  - include:
+#      file: db/migration/002_init_test_data.sql
+#      relativeToChangelogFile: true
