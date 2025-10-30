@@ -78,8 +78,8 @@ public class AdminController {
             @RequestParam @NotBlank(message = "Пароль не может быть пустым")
             @Size(min = 3, max = 100, message = "Пароль должен быть от 3 до 100 символов")
             String password,
-            @Parameter(description = "Роль пользователя", example = "USER")
-            @RequestParam(required = false) String role) {
+            @Parameter(description = "Роль пользователя", required = true, example = "USER")
+            @RequestParam(required = true) String role) {
         UserCreationDTO userCreationDTO = new UserCreationDTO(username, password, role);
         UserResponseDTO updatedUser = adminService.updateUser(id, userCreationDTO);
         return ResponseEntity.ok(updatedUser);
