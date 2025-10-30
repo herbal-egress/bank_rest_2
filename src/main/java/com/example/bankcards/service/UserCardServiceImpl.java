@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class UserCardServiceImpl implements UserCardService {
     private static final Logger logger = LoggerFactory.getLogger(UserCardServiceImpl.class);
     private final CardRepository cardRepository;
-    private final SecurityUtil securityUtil; 
+    private final SecurityUtil securityUtil;
     private final CardMapper cardMapper;
     public UserCardServiceImpl(CardRepository cardRepository, SecurityUtil securityUtil, CardMapper cardMapper) {
         this.cardRepository = cardRepository;
@@ -67,7 +67,7 @@ public class UserCardServiceImpl implements UserCardService {
 
 
     @Override
-    public CardDTO getCardBalance(Long cardId) { 
+    public CardDTO getCardBalance(Long cardId) {
         Long userId = securityUtil.getCurrentUserId();
         logger.info("Получение баланса карты с ID: {} для пользователя с ID: {}", cardId, userId);
         Card card = cardRepository.findByIdAndUserId(cardId, userId)
