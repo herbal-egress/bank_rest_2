@@ -1,5 +1,5 @@
-#databaseChangeLog:
-#  - include:
-#      file: db/migration/001_init_test_schema.sql
-#  - include:
-#      file: db/migration/002_init_test_data.sql
+databaseChangeLog:
+  - include:
+      file: db/migration/001_init_test_schema.sql
+  - include:
+      file: db/migration/002_init_test_data.sql

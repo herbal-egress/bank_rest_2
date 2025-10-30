@@ -7,10 +7,11 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
-    hibernate:
-      ddl-auto: update
+    open-in-view: false
+#    hibernate:
     properties:
       hibernate:
+        ddl-auto: update
         show-sql: true
         default_schema: bankrest
   liquibase:
