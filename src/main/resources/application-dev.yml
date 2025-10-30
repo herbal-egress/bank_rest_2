@@ -16,7 +16,7 @@ spring:
   liquibase:
     change-log: classpath:db/migration/changelog-master.xml
     enabled: true
-    default-schema: bankrest
+    default-schema: public # Liquibase ведёт свою историю здесь
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
