@@ -29,7 +29,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         // Изменил: добавил /api/admin/** в исключения CSRF
-                        .ignoringRequestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/auth/**", "/api/admin/**")
+                        .ignoringRequestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api/auth/**", "/api/admin/**", "/api/user/**")
                 )
                 .headers(headers -> headers
                         .addHeaderWriter(new StaticHeadersWriter("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"))

@@ -187,4 +187,10 @@ public class GlobalExceptionHandler {
         errorResponse.put("ошибка", "Доступ запрещен");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
+    // добавил: обработка случая, когда карта уже заблокирована
+    @ExceptionHandler(CardAlreadyBlockedException.class)
+    public ResponseEntity<String> handleCardAlreadyBlockedException(CardAlreadyBlockedException ex) {
+        log.warn("Попытка повторной блокировки: {}", ex.getMessage());
+        return ResponseEntity.ok(ex.getMessage()); // Возвращаем текстовое сообщение, как требуется
+    }
 }

@@ -1,1 +1,1 @@
--- drop schema if exists test cascade;
+drop schema if exists test cascade;
